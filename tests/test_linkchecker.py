@@ -11,15 +11,15 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import unittest
 import sys
-from . import linkchecker_cmd, run_checked
+from . import run_checked
 
 
-def run_with_options(options, cmd=linkchecker_cmd):
+def run_with_options(options):
     """Run a command with given options."""
-    run_checked([sys.executable, cmd] + options)
+    run_checked([sys.executable, "-m", "linkcheck"] + options)
 
 
 class TestLinkchecker(unittest.TestCase):
@@ -27,7 +27,19 @@ class TestLinkchecker(unittest.TestCase):
 
     def test_linkchecker(self):
         # test some single options
-        for option in ("-V", "--version", "-h", "--help", "--list-plugins", "-Dall"):
+        for option in (
+                "-V",
+                "--version",
+                "-h",
+                "--help",
+                "--list-plugins",
+                "-Dall",
+                "-ocsv",
+                "-Fhtml",
+                ):
             run_with_options([option])
         # unknown option
         self.assertRaises(OSError, run_with_options, ["--imadoofus"])
+        # non-existent FILENAMEs
+        self.assertRaises(OSError, run_with_options, ["--config", "no_such_file"])
+        self.assertRaises(OSError, run_with_options, ["--cookiefile", "no_such_file"])

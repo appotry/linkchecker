@@ -8,8 +8,9 @@ DESCRIPTION
 
 **linkcheckerrc** is the configuration file for LinkChecker. The file is
 written in an INI-style format.
-The default file location is **~/.linkchecker/linkcheckerrc** on Unix,
-**%HOMEPATH%\\.linkchecker\\linkcheckerrc** on Windows systems.
+The default file location is **$XDG_CONFIG_HOME/linkchecker/linkcheckerrc**
+or else **~/.config/linkchecker/linkcheckerrc** on Unix,
+**%HOMEPATH%\\.config\\linkchecker\\linkcheckerrc** on Windows systems.
 
 SETTINGS
 --------
@@ -32,11 +33,6 @@ checking
     slash to join directories instead of a backslash. And the given
     directory must end with a slash.
     Command line option: none
-**nntpserver=**\ *STRING*
-    Specify an NNTP server for **news:** links. Default is the
-    environment variable :envvar:`NNTP_SERVER`. If no host is given, only the
-    syntax of the link is checked.
-    Command line option: :option:`--nntp-server`
 **recursionlevel=**\ *NUMBER*
     Check recursively all links up to given depth. A negative depth will
     enable infinite recursion. Default depth is infinite.
@@ -87,7 +83,11 @@ checking
     The default is to queue and check all URLs.
     Command line option: none
 **maxrequestspersecond=**\ *NUMBER*
-    Limit the maximum number of requests per second to one host.
+    Limit the maximum number of HTTP requests per second to one host.
+    The average number of requests per second is approximately one third of the
+    maximum. Values less than 1 and at least 0.001 can be used.
+    To use values greater than 10, the HTTP server must return a
+    **LinkChecker** response header.
     The default is 10.
     Command line option: none
 **robotstxt=**\ [**0**\ \|\ **1**]
@@ -111,8 +111,30 @@ filtering
     Command line option: :option:`--ignore-url`
 **ignorewarnings=**\ *NAME*\ [**,**\ *NAME*...]
     Ignore the comma-separated list of warnings. See `WARNINGS`_ for
-    the list of supported warnings.
+    the list of supported warnings. Messages are logged as information.
     Command line option: none
+**ignorewarningsforurls=**\ *URL_REGEX* [*NAME_REGEX*] (`MULTILINE`_)
+    Specify regular expressions to ignore warnings for matching URLs, one
+    per line.
+    On each line, you can specify a second regular expression,
+    ensuring that only the warnings with names matching the second
+    expression will be ignored for that URL.
+    If the second expression is omitted, all warnings are ignored for
+    that URL.
+
+    Default is to not ignore any warnings.
+    See `WARNINGS`_ for the list of supported warnings.
+    Messages are logged as information.
+    Command line option: none
+
+    Example:
+
+::
+
+    [filtering]
+    ignorewarningsforurls=
+      ^https://redirected\.example\.com ^http-redirected
+
 **internlinks=**\ *REGEX*
     Regular expression to add more URLs recognized as internal links.
     Default is that URLs given on the command line are internal.
@@ -130,8 +152,8 @@ authentication
 
 **entry=**\ *REGEX* *USER* [*PASS*] (`MULTILINE`_)
     Provide individual username/password pairs for different links. In
-    addtion to a single login page specified with **loginurl** multiple
-    FTP, HTTP (Basic Authentication) and telnet links are supported.
+    addition to a single login page specified with **loginurl** multiple
+    FTP and HTTP (Basic Authentication) links are supported.
     Entries are a triple (URL regex, username, password) or a tuple (URL
     regex, username), where the entries are separated by whitespace.
     The password is optional and if missing it has to be entered at the
@@ -161,42 +183,76 @@ authentication
 output
 ^^^^^^
 
-**debug=**\ *STRING*\ [**,**\ *STRING*...]
-    Print debugging output for the given modules. Available debug
-    modules are **cmdline**, **checking**, **cache**, **dns**,
-    **thread**, **plugins** and **all**. Specifying **all** is an alias
-    for specifying all available loggers.
-    Command line option: :option:`--debug`
+URL checking results
+""""""""""""""""""""
+
 **fileoutput=**\ *TYPE*\ [**,**\ *TYPE*...]
     Output to a file **linkchecker-out.**\ *TYPE*, or
-    **$HOME/.linkchecker/failures** for **failures** output.
+    **$XDG_DATA_HOME/linkchecker/failures** for the **failures** output type.
     Valid file output types are **text**, **html**, **sql**, **csv**,
     **gml**, **dot**, **xml**, **none** or **failures**. Default is no
     file output. The various output types are documented below. Note
     that you can suppress all console output with **output=none**.
     Command line option: :option:`--file-output`
 **log=**\ *TYPE*\ [**/**\ *ENCODING*]
-    Specify output type as **text**, **html**, **sql**, **csv**,
+    Specify the console output type as **text**, **html**, **sql**, **csv**,
     **gml**, **dot**, **xml**, **none** or **failures**. Default type
     is **text**. The various output types are documented below.
     The *ENCODING* specifies the output encoding, the default is that of
     your locale. Valid encodings are listed at
     https://docs.python.org/library/codecs.html#standard-encodings.
     Command line option: :option:`--output`
-**quiet=**\ [**0**\ \|\ **1**]
-    If set, operate quiet. An alias for **log=none**. This is only
-    useful with **fileoutput**.
-    Command line option: :option:`--verbose`
-**status=**\ [**0**\ \|\ **1**]
-    Control printing check status messages. Default is 1.
-    Command line option: :option:`--no-status`
 **verbose=**\ [**0**\ \|\ **1**]
-    If set log all checked URLs once. Default is to log only errors and
-    warnings.
+    If set log all checked URLs once, overriding **warnings**.
+    Default is to log only errors and warnings.
     Command line option: :option:`--verbose`
 **warnings=**\ [**0**\ \|\ **1**]
     If set log warnings. Default is to log warnings.
     Command line option: :option:`--no-warnings`
+**ignoreerrors=**\ *URL_REGEX* [*MESSAGE_REGEX*] (`MULTILINE`_)
+    Specify regular expressions to ignore errors for matching URLs, one
+    per line. A second regular expression can be specified per line to
+    only ignore matching error messages per corresponding URL. If the
+    second expression is omitted, all errors are ignored. In contrast
+    to filtering_, this happens *after* checking, which allows checking
+    URLs despite certain expected and tolerable errors. Default is to
+    not ignore any errors. Example:
+
+::
+
+    [output]
+    ignoreerrors=
+      ^https://deprecated\.example\.com ^410 Gone
+      # ignore all errors (no second expression), also for syntax check:
+      ^mailto:.*@example\.com$
+
+Progress updates
+""""""""""""""""
+
+**status=**\ [**0**\ \|\ **1**]
+    Control printing URL checker status messages. Default is 1.
+    Command line option: :option:`--no-status`
+
+Application
+"""""""""""
+
+**debug=**\ *STRING*\ [**,**\ *STRING*...]
+    Print debugging output for the given logger. Available debug
+    loggers are **cmdline**, **checking**, **cache**, **plugin** and **all**.
+    **all** is an alias for all available loggers.
+    Command line option: :option:`--debug`
+
+Quiet
+"""""
+
+**quiet=**\ [**0**\ \|\ **1**]
+    If set, operate quiet. An alias for **log=none** that also hides
+    application information messages.
+    This is only useful with **fileoutput**, else no results will be output.
+    Command line option: :option:`--quiet`
+
+OUTPUT TYPES
+------------
 
 text
 ^^^^
@@ -212,7 +268,11 @@ text
 **encoding=**\ *STRING*
     Valid encodings are listed in
     https://docs.python.org/library/codecs.html#standard-encodings.
-    Default encoding is **iso-8859-15**.
+    Default encoding is the system default locale encoding.
+**wraplength=**\ *NUMBER*
+    The number of characters at which to wrap each message line.
+    The default is 65.
+    Command line option: none
 *color\**
     Color settings for the various log parts, syntax is *color* or
     *type*\ **;**\ *color*. The *type* can be **bold**, **light**,
@@ -274,9 +334,13 @@ csv
 **encoding=**\ *STRING*
     See :ref:`[text] <man/linkcheckerrc:text>` section above.
 **separator=**\ *CHAR*
-    Set CSV separator. Default is a comma (**,**).
+    Set CSV separator. Default is a semicolon (**;**).
 **quotechar=**\ *CHAR*
     Set CSV quote character. Default is a double quote (**"**).
+**dialect=**\ *STRING*
+    Controls the output formatting.
+    See https://docs.python.org/3/library/csv.html#csv.Dialect.
+    Default is **excel**.
 
 sql
 ^^^
@@ -357,7 +421,7 @@ sitemap
     A number between 0.0 and 1.0 determining the priority. The default
     priority for the first URL is 1.0, for all child URLs 0.5.
 **frequency=**\ [**always**\ \|\ **hourly**\ \|\ **daily**\ \|\ **weekly**\ \|\ **monthly**\ \|\ **yearly**\ \|\ **never**]
-    How frequently pages are changing.
+    How frequently pages are changing. Default is **daily**.
 
 LOGGER PARTS
 ------------
@@ -432,7 +496,9 @@ options in their section.
 AnchorCheck
 ^^^^^^^^^^^
 
-Checks validity of HTML anchors.
+Checks validity of HTML anchors. When checking local files, URLs with anchors
+that link to directories e.g. "example/#anchor" are not supported. There is no
+such limitation when using http(s).
 
 LocationInfo
 ^^^^^^^^^^^^
@@ -468,8 +534,14 @@ warnings.
 HtmlSyntaxCheck
 ^^^^^^^^^^^^^^^
 
-Check the syntax of HTML pages with the online W3C HTML validator. See
-https://validator.w3.org/docs/api.html.
+Check the syntax of HTML pages by submitting their URLs to the online W3C HTML
+validator. If a page URL is not accessible to the validator no check is
+performed and no warning given.
+See https://validator.w3.org/docs/api.html.
+
+.. note::
+
+    The HtmlSyntaxCheck plugin is currently broken and is disabled.
 
 HttpHeaderInfo
 ^^^^^^^^^^^^^^
@@ -483,8 +555,10 @@ Print HTTP headers in URL info.
 CssSyntaxCheck
 ^^^^^^^^^^^^^^
 
-Check the syntax of HTML pages with the online W3C CSS validator. See
-https://jigsaw.w3.org/css-validator/manual.html#expert.
+Check the syntax of CSS stylesheets by submitting their URLs to the online W3C CSS
+validator. If a stylesheet URL is not accessible to the validator no check is
+performed and no warning given.
+See https://jigsaw.w3.org/css-validator/manual.html#expert.
 
 VirusCheck
 ^^^^^^^^^^
@@ -498,7 +572,7 @@ daemon must be installed.
 PdfParser
 ^^^^^^^^^
 
-Parse PDF files for URLs to check. Needs the :pypi:`pdfminer` Python package
+Parse PDF files for URLs to check. Needs the :pypi:`pdfminer.six` Python package
 installed.
 
 WordParser
@@ -518,9 +592,11 @@ Parse Markdown files for URLs to check.
 WARNINGS
 --------
 
-The following warnings are recognized in the 'ignorewarnings' config
-file entry:
+The following warnings are recognized by **ignorewarnings** and
+**ignorewarningsforurls**:
 
+**file-anchorcheck-directory**
+    A local directory with an anchor, not supported by AnchorCheck.
 **file-missing-slash**
     The file: URL is missing a trailing slash.
 **file-system-path**
@@ -531,16 +607,18 @@ file entry:
     An error occurred while storing a cookie.
 **http-empty-content**
     The URL had no content.
+**http-rate-limited**
+    Too many HTTP requests.
+**http-redirected**
+    Redirected to a different URL.
 **mail-no-mx-host**
     The mail MX host could not be found.
-**nntp-no-newsgroup**
-    The NNTP newsgroup could not be found.
-**nntp-no-server**
-    No NNTP server was found.
 **url-content-size-zero**
     The URL content size is zero.
 **url-content-too-large**
     The URL content size is too large.
+**url-content-type-unparseable**
+    The URL content type is not parseable.
 **url-effective-url**
     The effective URL is different from the original.
 **url-error-getting-content**

@@ -20,18 +20,16 @@ Main package for link checking.
 # version checks
 import sys
 
-if sys.version_info < (3, 6, 0, 'final', 0):
+if sys.version_info < (3, 9, 0, 'final', 0):
     import platform
 
     raise SystemExit(
-        "This program requires Python 3.6 or later instead of %s."
+        "This program requires Python 3.9 or later instead of %s."
         % platform.python_version()
     )
 
 import os
 import re
-import signal
-import traceback
 
 from . import i18n, log
 from .logconf import (
@@ -42,21 +40,14 @@ from .logconf import (
     LOG_THREAD,
     LOG_PLUGIN,
 )
-import _LinkChecker_configdata as configdata
+
+COMMAND_NAME = "linkchecker"
+PACKAGE_NAME = __spec__.parent
 
 
 def module_path():
     """Return absolute directory of system executable."""
     return os.path.dirname(os.path.abspath(sys.executable))
-
-
-def get_install_data():
-    """Return absolute path of LinkChecker data installation directory."""
-    from .loader import is_frozen
-
-    if is_frozen():
-        return module_path()
-    return configdata.install_data
 
 
 class LinkCheckerError(Exception):
@@ -83,7 +74,7 @@ def get_link_pat(arg, strict=False):
     @rtype: dict
     @raises: re.error on invalid regular expressions
     """
-    log.debug(LOG_CHECK, "Link pattern %r strict=%s", arg, strict)
+    log.debug(LOG_CHECK, _("Link pattern %r strict=%s"), arg, strict)
     if arg.startswith('!'):
         pattern = arg[1:]
         negate = True
@@ -93,7 +84,7 @@ def get_link_pat(arg, strict=False):
     try:
         regex = re.compile(pattern)
     except re.error as msg:
-        log.warn(LOG_CHECK, "invalid regular expression %r: %s" % (pattern, msg))
+        log.warn(LOG_CHECK, _("invalid regular expression %r: %s"), pattern, msg)
         raise
     return {
         "pattern": regex,
@@ -102,7 +93,7 @@ def get_link_pat(arg, strict=False):
     }
 
 
-def init_i18n(loc=None):
+def init_i18n():
     """Initialize i18n with the configured locale dir. The environment
     variable LOCPATH can also specify a locale dir.
 
@@ -111,8 +102,9 @@ def init_i18n(loc=None):
     if 'LOCPATH' in os.environ:
         locdir = os.environ['LOCPATH']
     else:
-        locdir = os.path.join(get_install_data(), 'share', 'locale')
-    i18n.init(configdata.name.lower(), locdir, loc=loc)
+        # Need Python 3.9 for importlib.resources.files
+        locdir = os.path.join(__path__[0], 'data', 'locale')
+    i18n.init(COMMAND_NAME, locdir)
     # install translated log level names
     import logging
 
@@ -127,40 +119,3 @@ def init_i18n(loc=None):
 
 # initialize i18n, puts _() and _n() function into global namespace
 init_i18n()
-
-
-def drop_privileges():
-    """Make sure to drop root privileges on POSIX systems."""
-    if os.name != 'posix':
-        return
-    if os.geteuid() == 0:
-        log.warn(
-            LOG_CHECK,
-            _(
-                "Running as root user; "
-                "dropping privileges by changing user to nobody."
-            ),
-        )
-        import pwd
-
-        os.seteuid(pwd.getpwnam('nobody')[3])
-
-
-if hasattr(signal, "SIGUSR1"):
-    # install SIGUSR1 handler
-    from .decorators import signal_handler
-
-    @signal_handler(signal.SIGUSR1)
-    def print_threadstacks(sig, frame):
-        """Print stack traces of all running threads."""
-        log.warn(LOG_THREAD, "*** STACKTRACE START ***")
-        for threadId, stack in sys._current_frames().items():
-            log.warn(LOG_THREAD, "# ThreadID: %s" % threadId)
-            for filename, lineno, name, line in traceback.extract_stack(stack):
-                log.warn(
-                    LOG_THREAD, 'File: "%s", line %d, in %s' % (filename, lineno, name)
-                )
-                line = line.strip()
-                if line:
-                    log.warn(LOG_THREAD, "  %s" % line)
-        log.warn(LOG_THREAD, "*** STACKTRACE END ***")

@@ -21,6 +21,8 @@ import unittest
 from tests import need_network
 from linkcheck import configuration, robotparser2
 
+import requests
+
 
 class TestRobotParser(unittest.TestCase):
     """
@@ -29,7 +31,7 @@ class TestRobotParser(unittest.TestCase):
 
     def setUp(self):
         """Initialize self.rp as a robots.txt parser."""
-        self.rp = robotparser2.RobotFileParser()
+        self.rp = robotparser2.RobotFileParser(session=requests.Session())
 
     def check(self, a, b):
         """Helper function comparing two results a and b."""
@@ -38,7 +40,7 @@ class TestRobotParser(unittest.TestCase):
         else:
             ac = "access allowed"
         if a != b:
-            self.fail("%s != %s (%s)" % (a, b, ac))
+            self.fail(f"{a} != {b} ({ac})")
 
     @need_network
     def test_nonexisting_robots(self):

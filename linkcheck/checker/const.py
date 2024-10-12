@@ -17,8 +17,6 @@
 Helper constants.
 """
 import socket
-import select
-import nntplib
 import ftplib
 import requests
 from .. import LinkCheckerError
@@ -37,14 +35,10 @@ ExcCacheList = [
     OSError,  # OSError is thrown on Windows when a file is not found
     LinkCheckerError,
     DNSException,
-    socket.error,
-    select.error,
-    # nttp errors (including EOFError)
-    nntplib.NNTPError,
     EOFError,
     # http errors
     requests.exceptions.RequestException,
-    requests.packages.urllib3.exceptions.HTTPError,
+    requests.packages.urllib3.exceptions.HTTPError,  # pylint: disable=no-member
     # ftp errors
     ftplib.Error,
     # idna.encode(), called from socket.create_connection()
@@ -85,19 +79,19 @@ WARN_URL_EFFECTIVE_URL = "url-effective-url"
 WARN_URL_ERROR_GETTING_CONTENT = "url-error-getting-content"
 WARN_URL_CONTENT_SIZE_TOO_LARGE = "url-content-too-large"
 WARN_URL_CONTENT_SIZE_ZERO = "url-content-size-zero"
+WARN_URL_CONTENT_TYPE_UNPARSEABLE = "url-content-type-unparseable"
 WARN_URL_OBFUSCATED_IP = "url-obfuscated-ip"
-WARN_URL_RATE_LIMITED = "url-rate-limited"
 WARN_URL_TOO_LONG = "url-too-long"
 WARN_URL_WHITESPACE = "url-whitespace"
 WARN_FILE_MISSING_SLASH = "file-missing-slash"
 WARN_FILE_SYSTEM_PATH = "file-system-path"
+WARN_FILE_ANCHORCHECK_DIRECTORY = "file-anchorcheck-directory"
 WARN_FTP_MISSING_SLASH = "ftp-missing-slash"
 WARN_HTTP_EMPTY_CONTENT = "http-empty-content"
 WARN_HTTP_COOKIE_STORE_ERROR = "http-cookie-store-error"
-WARN_IGNORE_URL = "ignore-url"
+WARN_HTTP_RATE_LIMITED = "http-rate-limited"
+WARN_HTTP_REDIRECTED = "http-redirected"
 WARN_MAIL_NO_MX_HOST = "mail-no-mx-host"
-WARN_NNTP_NO_SERVER = "nntp-no-server"
-WARN_NNTP_NO_NEWSGROUP = "nntp-no-newsgroup"
 WARN_XML_PARSE_ERROR = "xml-parse-error"
 
 # registered warnings
@@ -106,22 +100,21 @@ Warnings = {
     WARN_URL_ERROR_GETTING_CONTENT: _("Could not get the content of the URL."),
     WARN_URL_CONTENT_SIZE_TOO_LARGE: _("The URL content size is too large."),
     WARN_URL_CONTENT_SIZE_ZERO: _("The URL content size is zero."),
-    WARN_URL_RATE_LIMITED: _(
-        "The URL request was rate limited so need reduce number of requests."
-    ),
+    WARN_URL_CONTENT_TYPE_UNPARSEABLE: _("The URL content type is not parseable."),
     WARN_URL_TOO_LONG: _("The URL is longer than the recommended size."),
     WARN_URL_WHITESPACE: _("The URL contains leading or trailing whitespace."),
     WARN_FILE_MISSING_SLASH: _("The file: URL is missing a trailing slash."),
     WARN_FILE_SYSTEM_PATH: _(
         "The file: path is not the same as the system specific path."
     ),
+    WARN_FILE_ANCHORCHECK_DIRECTORY: _(
+        "A local directory with an anchor, not supported by AnchorCheck."),
     WARN_FTP_MISSING_SLASH: _("The ftp: URL is missing a trailing slash."),
     WARN_HTTP_EMPTY_CONTENT: _("The URL had no content."),
     WARN_HTTP_COOKIE_STORE_ERROR: _("An error occurred while storing a cookie."),
-    WARN_IGNORE_URL: _("The URL has been ignored."),
+    WARN_HTTP_RATE_LIMITED: _("The URL request was rate limited."),
+    WARN_HTTP_REDIRECTED: _("Redirected to a different URL."),
     WARN_MAIL_NO_MX_HOST: _("The mail MX host could not be found."),
-    WARN_NNTP_NO_SERVER: _("No NNTP server was found."),
-    WARN_NNTP_NO_NEWSGROUP: _("The NNTP newsgroup could not be found."),
     WARN_URL_OBFUSCATED_IP: _("The IP is obfuscated."),
     WARN_XML_PARSE_ERROR: _("XML could not be parsed."),
 }

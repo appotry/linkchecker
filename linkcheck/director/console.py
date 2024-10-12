@@ -53,7 +53,7 @@ class StatusLogger:
 
     def writeln(self, msg):
         """Write status message and line break to file descriptor."""
-        self.fd.write("%s%s" % (msg, os.linesep))
+        self.fd.write(f"{msg}{os.linesep}")
 
     def flush(self):
         """Flush file descriptor."""
@@ -105,7 +105,7 @@ def print_env_info(key, out=stderr):
 
 def print_proxy_info(out=stderr):
     """Print proxy info."""
-    for key in ("http_proxy", "ftp_proxy", "no_proxy"):
+    for key in ("http_proxy", "https_proxy", "curl_ca_bundle", "no_proxy"):
         print_env_info(key, out=out)
 
 
@@ -113,7 +113,6 @@ def print_locale_info(out=stderr):
     """Print locale info."""
     for key in ("LANGUAGE", "LC_ALL", "LC_CTYPE", "LANG"):
         print_env_info(key, out=out)
-    print(_("Default locale:"), i18n.get_locale(), file=out)
 
 
 # Environment variables influencing the interpreter execution

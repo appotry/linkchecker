@@ -17,19 +17,29 @@
 HTML parser implemented using Beautiful Soup and html.parser.
 """
 
-from warnings import filterwarnings
+import warnings
 
-filterwarnings(
+warnings.filterwarnings(
     "ignore",
     message="The soupsieve package is not installed. CSS selectors cannot be used.",
     category=UserWarning,
     module="bs4",
 )
 
-from bs4 import BeautifulSoup
+import bs4
+
+# bs4 4.9.1 introduced MarkupResemblesLocatorWarning
+hasattr(bs4, "MarkupResemblesLocatorWarning") and warnings.simplefilter(
+    'ignore', bs4.MarkupResemblesLocatorWarning
+)
+
+# bs4 4.11.0 introduced builder.XMLParsedAsHTMLWarning
+hasattr(bs4.builder, "XMLParsedAsHTMLWarning") and warnings.simplefilter(
+    'ignore', bs4.builder.XMLParsedAsHTMLWarning
+)
 
 
 def make_soup(markup, from_encoding=None):
-    return BeautifulSoup(
+    return bs4.BeautifulSoup(
         markup, "html.parser", from_encoding=from_encoding, multi_valued_attributes=None
     )

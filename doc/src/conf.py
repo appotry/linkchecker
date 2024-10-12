@@ -4,12 +4,11 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
-from datetime import date
 import linkcheck.configuration
 
 project = 'LinkChecker'
 copyright = linkcheck.configuration.Copyright.split("Copyright (C) ")[1]
-version = str(date.today())
+version = linkcheck.configuration.Version
 release = version
 
 # -- General configuration ---------------------------------------------------
@@ -23,6 +22,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx_epytext',
     'sphinx_rtd_theme',
+    'sphinx_sitemap',
 ]
 
 locale_dirs = ['../i18n/locales']
@@ -78,12 +78,21 @@ autodoc_member_order = 'groupwise'
 
 autosectionlabel_prefix_document = True
 
-extlinks = {'pypi': ('https://pypi.org/project/%s/', '')}
+autosummary_mock_imports = ['ctypes', 'linkcheck.__main__']
+
+extlinks = {'pypi': ('https://pypi.org/project/%s/', '%s')}
 
 graphviz_output_format = 'svg'
+
+# sitemap
+html_baseurl = 'https://linkchecker.github.io/linkchecker/'
+
+sitemap_locales = [None]
+
+sitemap_url_scheme = "{link}"
 
 # -- Mock --------------------------------------------------------------------
 
 import linkcheck.logger
 linkcheck.logger.failures.FailuresLogger.LoggerArgs = {
-    'filename': '~/.linkchecker/failures'}
+    'filename': '$XDG_DATA_HOME/linkchecker/failures'}

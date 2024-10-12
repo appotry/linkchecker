@@ -35,12 +35,14 @@ def guess_url(url):
         a http respective ftp URL.
     @rtype: unicode
     """
+    if url.lower().endswith(".html") and "/" not in url:
+        return url
     if url.lower().startswith("www."):
         # syntactic sugar
-        return "http://%s" % url
+        return f"http://{url}"
     elif url.lower().startswith("ftp."):
         # syntactic sugar
-        return "ftp://%s" % url
+        return f"ftp://{url}"
     return url
 
 
@@ -114,7 +116,7 @@ def get_url_from(
     else:
         scheme = None
         if not (url or name):
-            # use filename as base url, with slash as path seperator
+            # use filename as base url, with slash as path separator
             name = base_url.replace("\\", "/")
     allowed_schemes = aggregate.config["allowedschemes"]
     # ignore local PHP files with execution directives
@@ -129,6 +131,9 @@ def get_url_from(
     else:
         assume_local_file = recursion_level == 0
         klass = get_urlclass_from(scheme, assume_local_file=assume_local_file)
+        if "AnchorCheck" in aggregate.config["enabledplugins"] and \
+                klass == fileurl.FileUrl:
+            klass = fileurl.AnchorCheckFileUrl
     log.debug(LOG_CHECK, "%s handles url %s", klass.__name__, base_url)
     return klass(
         base_url,
@@ -155,12 +160,8 @@ def get_urlclass_from(scheme, assume_local_file=False):
         klass = ftpurl.FtpUrl
     elif scheme == "file":
         klass = fileurl.FileUrl
-    elif scheme == "telnet":
-        klass = telneturl.TelnetUrl
     elif scheme == "mailto":
         klass = mailtourl.MailtoUrl
-    elif scheme in ("nntp", "news", "snews"):
-        klass = nntpurl.NntpUrl
     elif scheme == "dns":
         klass = dnsurl.DnsUrl
     elif scheme == "itms-services":
@@ -186,12 +187,15 @@ def get_index_html(urls):
         name = html.escape(entry)
         try:
             url = html.escape(urllib.parse.quote(entry))
+        except UnicodeEncodeError:
+            log.warn(LOG_CHECK, "Unable to convert entry to Unicode")
+            continue
         except KeyError:
             # Some unicode entries raise KeyError.
             url = name
-        lines.append('<a href="%s">%s</a>' % (url, name))
+        lines.append(f'<a href="{url}">{name}</a>')
     lines.extend(["</body>", "</html>"])
-    return os.linesep.join(lines)
+    return os.linesep.join(lines).encode()
 
 
 # all the URL classes
@@ -202,8 +206,6 @@ from . import (  # noqa: E402
     httpurl,
     dnsurl,
     mailtourl,
-    telneturl,
-    nntpurl,
     ignoreurl,
     itmsservicesurl,
 )

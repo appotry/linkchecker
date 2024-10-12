@@ -3,36 +3,66 @@ name: Publish LinkChecker Documentation on GitHub Pages
 on:
   push:
     branches: ["master"]
+  release:
+    types: [released]
 
 jobs:
   run:
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+        with:
+          # Needed for hatch-vcs to extract LinkChecker version from tag
+          # https://github.com/actions/checkout/issues/249
+          fetch-depth: 0
+          show-progress: false
 
       - name: Install Ubuntu packages
         run: sudo apt install graphviz
 
       # Ensure sphinx-autogen is installed in PATH
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
 
       - name: Install Python packages
-        run: >
-            pip install dnspython beautifulsoup4 pyxdg requests \
-                        sphinx sphinx_epytext sphinx_rtd_theme
+        run: |
+            pip install dnspython beautifulsoup4 requests \
+                        hatchling hatch-vcs
+            # Allow sphinx-rtd-theme to choose the versions of sphinx & docutils
+            pip install sphinx-rtd-theme
+            pip install sphinx-epytext sphinx-sitemap
 
       - name: Build
         run: |
-            python3 setup.py build
-            make -C doc code
+            python3 -m hatchling build -t sdist --hooks-only
             make -C doc html
 
-      - name: Publish
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./doc/html
-          commit_message: ${{ github.event.head_commit.message }}
+          path: "doc/html"
+
+
+  deploy:
+
+    needs: run
+
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

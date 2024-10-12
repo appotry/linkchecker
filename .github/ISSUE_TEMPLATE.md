@@ -11,6 +11,9 @@
  2. 
  3. 
 
+<!-- Reporting a minimal example that reproduces the problem in the text of
+the issue can increase the chance of a solution significantly. -->
+
 ## Actual result
 
 ## Expected result
@@ -23,16 +26,18 @@
  * Linkchecker version: <!-- linkchecker --version -->
  * Python version: <!-- python --version -->
  * Install method: <!-- distribution package, PyPI, from source tarball, from git, etc -->
- * Site URL: <!-- e.g. https://example.com/... -->
 
-## Configuration file
+## Configuration
 
-<!-- include full contents of your configuration file, ~/.linkchecker/linkcheckerrc -->
+<!-- Include the output of `linkchecker -Dcmdline -q -f <FILENAME>` inline, not as an attachment, -->
+<!-- you may want to substitute any sensitive strings, make sure any substitutions are consistent -->
+<!-- in the reported result and logs. -->
+<!-- (if you don't use -f/--config when reproducing the problem omit that option here). -->
 
 ## Logs
 
-<!-- Include full log of the linkchecker run, with --verbose -->
-<!-- Also include the exact commandline used -->
+<!-- The exact command line used -->
+<!-- Rerun with -Dall and include all relevant lines -->
 <!-- If a Traceback happened include it in full as well -->
 
 ## Other notes

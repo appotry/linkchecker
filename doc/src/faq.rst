@@ -8,7 +8,7 @@ Mozilla/IE/Opera/... Is this a bug in LinkChecker?**
 
 A: Please check your web pages first. Are they really okay?
 Often the major browsers are very forgiving and good at handling HTML
-of HTTP errors, while LinkChecker complains in most cases of invalid
+or HTTP errors, while LinkChecker complains in most cases of invalid
 content.
 
 Enable the :ref:`man/linkcheckerrc:HtmlSyntaxCheck` plugin,
@@ -17,7 +17,7 @@ or check if you are using a proxy which produces the error.
 
 **Q: I still get an error, but the page is definitely okay.**
 
-A: Some servers deny access of automated tools (also called robots)
+A: Some servers deny access to automated tools (also called robots)
 like LinkChecker. This is not a bug in LinkChecker but rather a
 policy by the webmaster running the website you are checking. Look in
 the ``/robots.txt`` file which follows the
@@ -38,7 +38,7 @@ check your web pages by adding the following to your robots.txt file::
 **Q: How can I tell LinkChecker which proxy to use?**
 
 A: LinkChecker works automatically with proxies. In a Unix or Windows
-environment, set the http_proxy, https_proxy, ftp_proxy environment
+environment, set the http_proxy or https_proxy environment
 variables to a URL that identifies the proxy server before starting
 LinkChecker. For example:
 

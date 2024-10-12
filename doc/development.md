@@ -1,79 +1,79 @@
 Developing LinkChecker
 ======================
 
-The following steps describe how to compile LinkChecker from source
-on various platforms.
+The following steps describe how to work with the LinkChecker source which can
+be found on [GitHub](https://github.com/linkchecker/linkchecker/) where
+development is managed.
 
 This is a technical document, if you are looking for ways to
 participate in the community, you should rather look into
-[contributing](contributing).
+[contributing](../CONTRIBUTING.rst).
 
 Requirements
 ------------
-On Mac OS X systems, using MacPorts, Fink or homebrew for software
-installation is recommended.
 
-- Install Python >= 2.7.2 from http://www.python.org/
+hatchling and hatch-vcs are used to create the application metadata and build
+distribution packages.
 
-- *On Windows only*, install the Windows SDK
-  http://msdn.microsoft.com/de-de/windows/bb980924
+These requirements are in addition to the dependencies covered in the
+[installation instructions](install.txt).
 
-- *On Windows only*, download and install the Microsoft
-  Visual C++ 2008 runtime from
-  http://www.microsoft.com/downloads/details.aspx?FamilyID=9b2da534-3e03-4391-8a4d-074b9f2bc1bf&displaylang=en
+Developers may wish to install hatch or tox to manage running tests.
 
-- *Optional, used for Virus checking:*
-  ClamAv for Unix from http://www.clamav.net/lang/en/download/
-  or for Windows from http://www.sosdg.org/clamav-win32/
+To run the copy of linkchecker in the local repository first create the
+metadata in linkcheck/_release.py:
 
-- *Optional, for displaying country codes:*
-  Pygeoip from http://code.google.com/p/pygeoip/
+    hatchling build -t sdist --hooks-only
 
+Then linkchecker can be run with:
 
-Setup for Unix/Linux
---------------------
-Execute ``make localbuild`` to compile a local version and execute
-``./linkchecker``.
-Execute ``make test`` to run the unittest suite.
-Execute ``make dist`` to build a distributable source package.
+    python -m linkcheck
 
+Workflows using GitHub Actions are used to check every PR, each commit and
+regularly the repository HEAD. Developers are able to perform these checks
+locally, using `flake8` for code style, and run the test suite with `tox` or
+`hatch -e test run tests` that are both configured to use pytest.
 
-Setup for Mac OS X
-------------------
-Execute ``make localbuild`` to compile a local version and execute
-``./linkchecker``.
-Execute ``make test`` to run the unittest suite.
-Execute ``make app`` to build a distributable source package.
+`hatchling build` creates distributions packages.
 
+Source layout
+-------------
 
-Setup for Windows
------------------
-Execute ``windows\build.bat`` to build a local version.
-Execute ``windows\test.bat`` to run the unittest suite.
-Execute ``windows\dist.bat`` to build a binary installer.
+Important files and directories for developers to be aware of:
 
+    .flake8
+    .gitignore
+    .yamllint
+    Dockerfile
+    pyproject.toml
+    pytest.ini
+    robots.txt      - test file
+    tox.ini
+    .github/        - GitHub automation
+    cgi-bin/        - WSGI frontend
+    doc/            - documentation including source for web site and man pages
+    linkcheck/      - core code and CLI frontend
+    po/             - application translations
+    scripts/        - automated IANA schemes updater, analysis tools
+    tests/
+    tools/          - build scripts
 
 Release process
 ---------------
 
-1. check whether updated translations need committing
+1. check whether updated man pages and translations need committing
    (`make locale; make -C doc locale; make -C doc man`)
+   if so create a pull request using the GitHub workflow:
+   "Create a branch with updated man pages and application translations"
 
-2. bump AppVersion in `setup.py`, edit `changelog.txt`, and if applicable the
-   copyright date in `linkcheck/configuration/__init__.py`
+2. run `scripts/update_iana_uri_schemes.sh` and commit any changes
 
-3. confirm tests have passed
+3. edit `changelog.txt` and `upgrading.txt`
 
-4. submit a pull request
+4. confirm tests have passed
 
-5. create a new git clone
+5. submit a pull request
 
-6. check Python polib package is installed
+6. create release (vX.Y.Z) on GitHub
 
-7. build Python distribution files (`setup.py sdist bdist_wheel`)
-
-8. check distribution files (`twine check dist/*`) and upload to PyPI (`twine upload dist/*`)
-
-9. create release (vX.Y.Z) on GitHub (GitHub creates the .tar.gz and .zip archives)
-
-10. increment AppVersion to vX.Y.Z+1.dev0
+7. check release has been created on PyPI

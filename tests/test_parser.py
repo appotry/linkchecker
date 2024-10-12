@@ -20,9 +20,8 @@ Test html parsing.
 from linkcheck.htmlutil import htmlsoup
 
 from io import StringIO
-import unittest
 
-from parameterized import parameterized
+import pytest
 
 from .htmllib import pretty_print_html
 
@@ -148,12 +147,11 @@ parsetests = [
 ]
 
 
-class TestParser(unittest.TestCase):
+class TestParser:
     """
     Test html parser.
     """
-
-    @parameterized.expand(parsetests)
+    @pytest.mark.parametrize("_in, _out", parsetests)
     def test_parse(self, _in, _out):
         # Parse all test patterns in one go.
         out = StringIO()
@@ -165,8 +163,8 @@ class TestParser(unittest.TestCase):
         Check parse results.
         """
         res = out.getvalue()
-        msg = "Test error; in: %r, out: %r, expect: %r" % (_in, res, _out)
-        self.assertEqual(res, _out, msg=msg)
+        msg = f"Test error; in: {_in!r}, out: {res!r}, expect: {_out!r}"
+        assert res == _out, msg
 
     def test_encoding_detection_utf_content(self):
         html = b'<meta http-equiv="content-type" content="text/html; charset=UTF-8">'
@@ -195,8 +193,9 @@ class TestParser(unittest.TestCase):
         self.encoding_test(html, "ascii")
 
     def encoding_test(self, html, expected):
-        # If chardet is installed Beautiful Soup uses it for encoding detection.
+        # For encoding detection Beautiful Soup uses if available in order
+        # of preference cchardet then chardet then charset-normalizer.
         # Results for html without a valid charset may differ
-        # based on chardet availability.
+        # based on cchardet/chardet/charset-normalizer availability.
         soup = htmlsoup.make_soup(html)
-        self.assertEqual(soup.original_encoding, expected)
+        assert soup.original_encoding == expected

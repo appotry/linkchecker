@@ -1,9 +1,42 @@
 Upgrading
 =========
-Migrating from 10.0 to 10.x
+
+Migrating from 10.4 to 10.5
+---------------------------
+No action needed.
+
+Migrating from 10.3 to 10.4
+---------------------------
+Python 3.9 or newer is required.
+
+Migrating from 10.2 to 10.3
+---------------------------
+Python 3.8 or newer is required.
+
+An HTTP redirect now causes a warning. Set ignorewarnings=http-redirected in
+linkcheckerrc for the previous behaviour.
+
+Migrating from 10.1 to 10.2
+---------------------------
+Python 3.7 or newer is required.
+
+Compiled application translations are now also included in the sdist package.
+No need to install polib before installing any distribution package. It is
+still required for building distribution packages that include translations.
+
+Warning url-rate-limited renamed to http-rate-limited.
+
+Migrating from 10.0 to 10.1
 ---------------------------
 If installing from source and application translations are needed the Python
 polib package is required to be installed before LinkChecker is installed.
+
+The linkchecker command is now generated using an entry point: for Python 3.6
+and 3.7 importlib_metadata is added to the run-time requirements.
+
+The environment variable ftp_proxy is no longer supported. GNOME and KDE proxy
+settings are not read; KDE proxy users especially may need to set
+the http_proxy environment variable themselves.
 
 Migrating from 9.x to 10.0
 --------------------------

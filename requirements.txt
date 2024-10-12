@@ -1,7 +1,7 @@
 # required:
 beautifulsoup4 >= 4.8.1
-requests >= 2.4
-pyxdg
+requests >= 2.20
 dnspython >= 2.0
 # optional:
-argcomplete
+argcomplete >= 1.8.1
+pdfminer.six >= 20181108

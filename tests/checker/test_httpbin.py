@@ -17,14 +17,17 @@
 Test http stuff with httpbin.org.
 """
 import re
-from tests import need_network
+from tests import need_network, running_in_ci
 from . import LinkCheckTest
 
 
 def get_httpbin_url(path):
-    """Get httpbin URL. Note that this also could be a local
-    httpbin installation, but right now this uses the official site."""
-    return "http://httpbin.org%s" % path
+    """Get httpbin URL."""
+    if running_in_ci():
+        host = "localhost:8080"
+    else:
+        host = "httpbin.org"
+    return f"http://{host}{path}"
 
 
 class TestHttpbin(LinkCheckTest):
@@ -40,6 +43,7 @@ class TestHttpbin(LinkCheckTest):
             "url %s" % url,
             "cache key %s" % nurl,
             "real url %s" % nurl,
+            "warning The URL with content type 'application/json' is not parseable.",
             "valid",
             "url %s" % linkurl,
             "cache key %s" % nlinkurl,
@@ -53,7 +57,7 @@ class TestHttpbin(LinkCheckTest):
     def test_basic_auth(self):
         user = "testuser"
         password = "testpassword"
-        url = get_httpbin_url("/basic-auth/%s/%s" % (user, password))
+        url = get_httpbin_url(f"/basic-auth/{user}/{password}")
         nurl = self.norm(url)
         entry = dict(user=user, password=password, pattern=re.compile(r".*"))
         confargs = dict(authentication=[entry])
@@ -75,6 +79,7 @@ class TestHttpbin(LinkCheckTest):
             "url %s" % url,
             "cache key %s" % nurl,
             "real url %s" % nurl,
+            "warning The URL with content type 'application/json' is not parseable.",
             "valid",
             "url %s" % linkurl,
             "cache key %s" % nlinkurl,
@@ -94,6 +99,7 @@ class TestHttpbin(LinkCheckTest):
             "url %s" % url,
             "cache key %s" % nurl,
             "real url %s" % nurl,
+            "warning The URL with content type 'application/json' is not parseable.",
             "valid",
             "url %s" % linkurl,
             "cache key %s" % nlinkurl,

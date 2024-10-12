@@ -62,16 +62,17 @@ ignored_schemes_permanent = r"""
 |cap        # Calendar Access Protocol
 |cid        # content identifier
 |coap       # coap
-|coap\+tcp  # coap+tcp [1]
-|coap\+ws   # coap+ws [1]
+|coap\+tcp  # coap+tcp (see [reviewer notes])
+|coap\+ws   # coap+ws (see [reviewer notes])
 |coaps      # coaps
-|coaps\+tcp # coaps+tcp [1]
-|coaps\+ws  # coaps+ws [1]
+|coaps\+tcp # coaps+tcp (see [reviewer notes])
+|coaps\+ws  # coaps+ws (see [reviewer notes])
 |crid       # TV-Anytime Content Reference Identifier
 |data       # data
 |dav        # dav
 |dict       # dictionary service protocol
 |dns        # Domain Name System
+|dtn        # DTNRG research and development
 |example    # example
 |geo        # Geographic Locations
 |go         # go
@@ -82,6 +83,7 @@ ignored_schemes_permanent = r"""
 |im         # Instant Messaging
 |imap       # internet message access protocol
 |info       # Information Assets with Identifiers in Public Namespaces. [RFC4452] (section 3) defines an "info" registry of public namespaces, which is maintained by NISO and can be accessed from [http://info-uri.info/].
+|ipn        # ipn
 |ipp        # Internet Printing Protocol
 |ipps       # Internet Printing Protocol over HTTPS
 |iris       # Internet Registry Information Service
@@ -95,11 +97,14 @@ ignored_schemes_permanent = r"""
 |mid        # message identifier
 |msrp       # Message Session Relay Protocol
 |msrps      # Message Session Relay Protocol Secure
+|mt         # Matter protocol on-boarding payloads that are encoded for use in QR Codes and/or NFC Tags
 |mtqp       # Message Tracking Query Protocol
 |mupdate    # Mailbox Update (MUPDATE) Protocol
+|news       # USENET news
 |nfs        # network file system protocol
 |ni         # ni
 |nih        # nih
+|nntp       # USENET news using NNTP access
 |opaquelocktoken # opaquelocktokent
 |pkcs11     # PKCS#11
 |pop        # Post Office Protocol v3
@@ -156,7 +161,9 @@ ignored_schemes_provisional = r"""
 |android    # android
 |appdata    # appdata
 |apt        # apt
+|ar         # ar
 |ark        # ark
+|at         # at (see [reviewer notes])
 |attachment # attachment
 |aw         # aw
 |barion     # barion
@@ -164,7 +171,9 @@ ignored_schemes_provisional = r"""
 |bitcoin    # bitcoin
 |bitcoincash # bitcoincash
 |blob       # blob
+|bluetooth  # bluetooth
 |bolo       # bolo
+|brid       # brid
 |browserext # browserext
 |cabal      # cabal
 |calculator # calculator
@@ -175,10 +184,12 @@ ignored_schemes_provisional = r"""
 |chrome\-extension # chrome-extension
 |com\-eventbrite\-attendee # com-eventbrite-attendee
 |content    # content
-|conti      # conti
+|content\-type # content-type
+|cstr       # cstr
 |cvs        # cvs
 |dab        # dab
 |dat        # dat
+|dhttp      # dhttp (see [reviewer notes])
 |diaspora   # diaspora
 |did        # did
 |dis        # dis
@@ -188,17 +199,20 @@ ignored_schemes_provisional = r"""
 |doi        # doi
 |dpp        # dpp
 |drm        # drm
-|drop       # drop
 |dtmi       # dtmi
-|dtn        # DTNRG research and development
 |dvb        # dvb
+|dvx        # dvx
 |dweb       # dweb
 |ed2k       # ed2k
+|eid        # eid
 |elsi       # elsi
+|embedded   # embedded
+|ens        # ens
 |ethereum   # ethereum
 |facetime   # facetime
 |feed       # feed
 |feedready  # feedready
+|fido       # fido
 |finger     # finger
 |first\-run\-pen\-experience # first-run-pen-experience
 |fish       # fish
@@ -206,12 +220,14 @@ ignored_schemes_provisional = r"""
 |fuchsia\-pkg # fuchsia-pkg
 |gg         # gg
 |git        # git
+|gitoid     # gitoid
 |gizmoproject # gizmoproject
 |graph      # graph
 |gtalk      # gtalk
 |ham        # ham
 |hcap       # hcap
 |hcp        # hcp
+|hs20       # hs20
 |hxxp       # hxxp
 |hxxps      # hxxps
 |hydrazone  # hydrazone
@@ -219,7 +235,6 @@ ignored_schemes_provisional = r"""
 |icon       # icon
 |iotdisco   # iotdisco
 |ipfs       # ipfs
-|ipn        # ipn
 |ipns       # ipns
 |irc        # irc
 |irc6       # irc6
@@ -232,8 +247,11 @@ ignored_schemes_provisional = r"""
 |lastfm     # lastfm
 |lbry       # lbry
 |ldaps      # ldaps
+|lid        # lid
 |lorawan    # lorawan
+|lpa        # lpa
 |lvlt       # lvlt
+|machineProvisioningProgressReporter # Windows Autopilot Modern Device Management status updates
 |magnet     # magnet
 |maps       # maps
 |market     # market
@@ -246,6 +264,7 @@ ignored_schemes_provisional = r"""
 |mongodb    # mongodb
 |moz        # moz
 |ms\-access # ms-access
+|ms\-appinstaller # ms-appinstaller
 |ms\-browser\-extension # ms-browser-extension
 |ms\-calculator # ms-calculator
 |ms\-drive\-to # ms-drive-to
@@ -258,15 +277,22 @@ ignored_schemes_provisional = r"""
 |ms\-help   # ms-help
 |ms\-infopath # ms-infopath
 |ms\-inputapp # ms-inputapp
+|ms\-launchremotedesktop # ms-launchremotedesktop
 |ms\-lockscreencomponent\-config # ms-lockscreencomponent-config
 |ms\-media\-stream\-id # ms-media-stream-id
+|ms\-meetnow # ms-meetnow
 |ms\-mixedrealitycapture # ms-mixedrealitycapture
 |ms\-mobileplans # ms-mobileplans
+|ms\-newsandinterests # ms-newsandinterests
 |ms\-officeapp # ms-officeapp
 |ms\-people # ms-people
+|ms\-personacard # ms-personacard
 |ms\-powerpoint # ms-powerpoint
 |ms\-project # ms-project
 |ms\-publisher # ms-publisher
+|ms\-recall # ms-recall
+|ms\-remotedesktop # ms-remotedesktop
+|ms\-remotedesktop\-launch # ms-remotedesktop-launch
 |ms\-restoretabcompanion # ms-restoretabcompanion
 |ms\-screenclip # ms-screenclip
 |ms\-screensketch # ms-screensketch
@@ -295,6 +321,7 @@ ignored_schemes_provisional = r"""
 |ms\-settings\-wifi # ms-settings-wifi
 |ms\-settings\-workplace # ms-settings-workplace
 |ms\-spd    # ms-spd
+|ms\-stickers # ms-stickers
 |ms\-sttoverlay # ms-sttoverlay
 |ms\-transit\-to # ms-transit-to
 |ms\-useractivityset # ms-useractivityset
@@ -308,16 +335,19 @@ ignored_schemes_provisional = r"""
 |mss        # mss
 |mumble     # mumble
 |mvn        # mvn
+|mvrp       # mvrp      (see [reviewer notes])
+|mvrps      # mvrps      (see [reviewer notes])
 |notes      # notes
+|num        # Namespace Utility Modules
 |ocf        # ocf
 |oid        # oid
 |onenote    # onenote
 |onenote\-cmd # onenote-cmd
+|openid     # OpenID Connect
 |openpgp4fpr # openpgp4fpr
 |otpauth    # otpauth
 |palm       # palm
 |paparazzi  # paparazzi
-|payment    # payment
 |payto      # payto
 |platform   # platform
 |proxy      # proxy
@@ -335,52 +365,76 @@ ignored_schemes_provisional = r"""
 |rsync      # rsync
 |rtmfp      # rtmfp
 |rtmp       # rtmp
+|sarif      # sarif
 |secondlife # query
+|secret\-token # secret-token
 |sftp       # query
 |sgn        # sgn
+|shc        # shc
 |simpleledger # simpleledger
+|simplex    # simplex
 |skype      # skype
 |smb        # smb
+|smp        # smp
 |smtp       # smtp
 |soldat     # soldat
 |spiffe     # spiffe
 |spotify    # spotify
 |ssb        # ssb
 |ssh        # ssh
+|starknet   # starknet
 |steam      # steam
 |submit     # submit
 |svn        # svn
 |swh        # swh
+|swid       # swid (see [reviewer notes])
+|swidpath   # swidpath (see [reviewer notes])
+|taler      # taler
 |teamspeak  # teamspeak
 |teliaeid   # teliaeid
 |things     # things
 |tool       # tool
 |udp        # udp
 |unreal     # unreal
-|upt        # upt
 |ut2004     # ut2004
+|uuid\-in\-package # uuid-in-package
 |v\-event   # v-event
 |ventrilo   # ventrilo
+|ves        # ves
 |view\-source # view-source
 |vscode     # vscode
 |vscode\-insiders # vscode-insiders
 |vsls       # vsls
+|w3         # w3 (see [reviewer notes])
+|wcr        # wcr
+|web\+ap    # web+ap
+|web3       # web3
 |webcal     # webcal
+|wifi       # wifi
 |wtai       # wtai
 |wyciwyg    # wyciwyg
 |xfire      # xfire
+|xftp       # xftp
+|xrcp       # xrcp
 |xri        # xri
 |ymsgr      # ymsgr
 """
 
 ignored_schemes_historical = r"""
+|bb         # bb
+|drop       # drop
 |fax        # fax
 |filesystem # filesystem
+|grd        # grd
 |mailserver # Access to data available from mail servers
 |modem      # modem
+|p1         # p1
 |pack       # pack
+|payment    # payment
 |prospero   # Prospero Directory Service
 |snews      # NNTP over SSL/TLS
+|thzp       # thzp
+|upt        # upt
 |videotex   # videotex
 |wais       # Wide Area Information Servers
 |wpid       # wpid
@@ -390,12 +444,16 @@ ignored_schemes_historical = r"""
 ignored_schemes_other = r"""
 |clsid      # Microsoft specific
 |find       # Mozilla specific
+|gemini     # Gemini protocol
 |isbn       # ISBN (int. book numbers)
 |javascript # JavaScript
+|ms\-windows\-store # Microsoft Store
 |slack      # Slack Technologies client
+|tg         # Telegram
+|whatsapp   # WhatsApp
 """
 
-ignored_schemes = "^(%s%s%s%s)$" % (
+ignored_schemes = "^({}{}{}{})$".format(
     ignored_schemes_permanent,
     ignored_schemes_provisional,
     ignored_schemes_historical,

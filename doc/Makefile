@@ -3,10 +3,7 @@ LOCALES:=en de
 
 all: html man
 
-code: clean
-	PYTHONPATH=.. sphinx-autogen src/code/index.rst
-
-html:
+html: clean
 	make -C src html
 
 locale:
@@ -16,7 +13,7 @@ man:
 	make -C src man; \
 	make -C src -e SPHINXOPTS="-D language='de' -t de" LANGUAGE="de" man
 
-# check all makefiles for formatting warnings
+# check all man files for formatting warnings
 check:
 	@for loc in $(LOCALES); do \
 	  for manfile in $(MANFILES); do \

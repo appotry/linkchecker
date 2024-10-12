@@ -16,15 +16,13 @@ LinkChecker features
 -  recursive and multithreaded checking
 -  output in colored or normal text, HTML, SQL, CSV, XML or a sitemap
    graph in different formats
--  support for HTTP/1.1, HTTPS, FTP, mailto:, news:, nntp:, Telnet and
-   local file links
+-  support for HTTP/1.1, HTTPS, FTP, mailto: and local file links
 -  restriction of link checking with URL filters
 -  proxy support
--  username/password authorization for HTTP, FTP and Telnet
+-  username/password authorization for HTTP and FTP
 -  support for robots.txt exclusion protocol
 -  support for Cookies
 -  support for HTML5
--  HTML and CSS syntax check
 -  Antivirus check
 -  a command line and web interface
 
@@ -87,15 +85,11 @@ General options
 .. option:: -f FILENAME, --config=FILENAME
 
     Use FILENAME as configuration file. By default LinkChecker uses
-    ~/.linkchecker/linkcheckerrc.
+    $XDG_CONFIG_HOME/linkchecker/linkcheckerrc.
 
 .. option:: -h, --help
 
     Help me! Print usage information for this program.
-    
-.. option:: --stdin
-
-    Read list of white-space separated URLs to check from stdin.
     
 .. option:: -t NUMBER, --threads=NUMBER
 
@@ -113,19 +107,13 @@ General options
 Output options
 ^^^^^^^^^^^^^^
 
-.. option:: -D STRING, --debug=STRING
-
-    Print debugging output for the given logger. Available loggers are
-    cmdline, checking, cache, dns, plugin and
-    all. Specifying all is an alias for specifying all available
-    loggers. The option can be given multiple times to debug with more
-    than one logger. For accurate results, threading will be disabled
-    during debug runs.
+URL checking results
+""""""""""""""""""""
 
 .. option:: -F TYPE[/ENCODING][/FILENAME], --file-output=TYPE[/ENCODING][/FILENAME]
 
     Output to a file linkchecker-out.TYPE,
-    $HOME/.linkchecker/failures for failures output, or
+    $XDG_DATA_HOME/linkchecker/failures for the failures output type, or
     FILENAME if specified. The ENCODING specifies the output
     encoding, the default is that of your locale. Valid encodings are
     listed at
@@ -138,50 +126,56 @@ Output options
     The various output types are documented below. Note that you can
     suppress all console output with the option :option:`-o` *none*.
 
-.. option:: --no-status
-
-    Do not print check status messages.
-
 .. option:: --no-warnings
 
     Don't log warnings. Default is to log warnings.
 
 .. option:: -o TYPE[/ENCODING], --output=TYPE[/ENCODING]
 
-    Specify output type as text, html, sql, csv,
+    Specify the console output type as text, html, sql, csv,
     gml, dot, xml, sitemap, none or failures.
-    Default type is text. The various output types are documented
-    below.
+    Default type is text. The various output types are documented below.
     The ENCODING specifies the output encoding, the default is that of
     your locale. Valid encodings are listed at
     https://docs.python.org/library/codecs.html#standard-encodings.
 
+.. option:: -v, --verbose   
+
+    Log all checked URLs, overriding :option:`--no-warnings`.
+    Default is to log only errors and warnings.
+
+Progress updates
+""""""""""""""""
+
+.. option:: --no-status
+
+    Do not print URL check status messages.
+
+Application
+"""""""""""
+
+.. option:: -D STRING, --debug=STRING
+
+    Print debugging output for the given logger.
+    Available debug loggers are cmdline, checking, cache, plugin and all.
+    all is an alias for all available loggers.
+    This option can be given multiple times to debug with more than one logger.
+
+Quiet
+"""""
+
 .. option:: -q, --quiet
 
-    Quiet operation, an alias for :option:`-o` *none*. This is only useful with
-    :option:`-F`.
-
-.. option:: -v, --verbose
-
-    Log all checked URLs. Default is to log only errors and warnings.
-    
-.. option:: -W REGEX, --warning-regex=REGEX 
-
-    Define a regular expression which prints a warning if it matches any
-    content of the checked link. This applies only to valid pages, so we
-    can get their content.
-    Use this to check for pages that contain some form of error, for
-    example "This page has moved" or "Oracle Application error".
-    Note that multiple values can be combined in the regular expression,
-    for example "(This page has moved|Oracle Application error)".
-    See section `REGULAR EXPRESSIONS`_ for more info.
+    Quiet operation, an alias for :option:`-o` *none* that also hides
+    application information messages.
+    This is only useful with :option:`-F`, else no results will be output.
 
 Checking options
 ^^^^^^^^^^^^^^^^
 
 .. option:: --cookiefile=FILENAME
 
-    Read a file with initial cookie data. The cookie data format is
+    Use initial cookie data read from a file. The cookie data format is
     explained below.
 
 .. option:: --check-extern
@@ -193,12 +187,6 @@ Checking options
     URLs matching the given regular expression will only be syntax checked.
     This option can be given multiple times.
     See section `REGULAR EXPRESSIONS`_ for more info.
-
-.. option:: -N STRING, --nntp-server=STRING
-
-    Specify an NNTP server for news: links. Default is the
-    environment variable :envvar:`NNTP_SERVER`. If no host is given, only the
-    syntax of the link is checked.
 
 .. option:: --no-follow-url=REGEX
 
@@ -238,6 +226,19 @@ Checking options
     Specify the User-Agent string to send to the HTTP server, for
     example "Mozilla/4.0". The default is "LinkChecker/X.Y" where X.Y is
     the current version of LinkChecker.
+
+Input options
+^^^^^^^^^^^^^
+
+.. option:: --stdin
+
+    Read from stdin a list of white-space separated URLs to check.
+
+.. option:: FILE-OR-URL
+
+    The location to start checking with.
+    A file can be a simple list of URLs, one per line, if the first line is
+    "# LinkChecker URL list".
 
 CONFIGURATION FILES
 -------------------
@@ -279,7 +280,7 @@ outputting a sitemap graph format.
     script to create the initial SQL table is included as create.sql.
 **failures**
     Suitable for cron jobs. Logs the check result into a file
-    **~/.linkchecker/failures** which only contains entries with
+    **$XDG_DATA_HOME/linkchecker/failures** which only contains entries with
     invalid URLs and the number of times they have failed.
 **none**
     Logs nothing. Suitable for debugging or checking the exit code.
@@ -325,15 +326,17 @@ and one to all URLs starting with **https://example.org/**:
 PROXY SUPPORT
 -------------
 
-To use a proxy on Unix or Windows set the :envvar:`http_proxy`, :envvar:`https_proxy` or
-:envvar:`ftp_proxy` environment variables to the proxy URL. The URL should be of
-the form
+To use a proxy on Unix or Windows set the :envvar:`http_proxy` or
+:envvar:`https_proxy` environment variables to the proxy URL. The URL should be
+of the form
 **http://**\ [*user*\ **:**\ *pass*\ **@**]\ *host*\ [**:**\ *port*].
 LinkChecker also detects manual proxy settings of Internet Explorer
-under Windows systems, and GNOME or KDE on Linux systems. On a Mac use
+under Windows systems. On a Mac use
 the Internet Config to select a proxy.
 You can also set a comma-separated domain list in the :envvar:`no_proxy`
-environment variables to ignore any proxy settings for these domains.
+environment variable to ignore any proxy settings for these domains.
+The :envvar:`curl_ca_bundle` environment variable can be used to identify an
+alternative certificate bundle to be used with an HTTPS proxy.
 
 Setting a HTTP proxy on Unix for example looks like this:
 
@@ -400,14 +403,6 @@ FTP links (**ftp:**)
     3. try to change to the given directory
     4. list the file with the NLST command
 
-Telnet links (**telnet:**)
-    We try to connect and if user/password are given, login to the given
-    telnet server.
-
-NNTP links (**news:**, **snews:**, **nntp**)
-    We try to connect to the given NNTP server. If a news group or
-    article is specified, try to request it from the server.
-
 Unsupported links (**javascript:**, etc.)
     An unsupported link will only print a warning. No further checking
     will be made.
@@ -416,6 +411,15 @@ Unsupported links (**javascript:**, etc.)
     in the
     `linkcheck/checker/unknownurl.py <https://github.com/linkchecker/linkchecker/blob/master/linkcheck/checker/unknownurl.py>`__
     source file. The most prominent of them should be JavaScript links.
+
+SITEMAPS
+--------
+
+Sitemaps are parsed for links to check and can be detected either from a
+sitemap entry in a robots.txt, or when passed as a :option:`FILE-OR-URL`
+argument in which case detection requires the urlset/sitemapindex tag to be
+within the first 70 characters of the sitemap.
+Compressed sitemap files are not supported.
 
 PLUGINS
 -------
@@ -471,23 +475,20 @@ automatically.
 
 You can supply multiple user/password pairs in a configuration file.
 
-When checking **news:** links the given NNTP host doesn't need to be the
-same as the host of the user browsing your pages.
-
 ENVIRONMENT
 -----------
-
-.. envvar:: NNTP_SERVER
-
-   specifies default NNTP server
 
 .. envvar:: http_proxy
 
    specifies default HTTP proxy server
 
-.. envvar:: ftp_proxy
+.. envvar:: https_proxy
 
-   specifies default FTP proxy server
+   specifies default HTTPS proxy server
+
+.. envvar:: curl_ca_bundle
+
+   an alternative certificate bundle to be used with an HTTPS proxy
 
 .. envvar:: no_proxy
 
@@ -521,9 +522,9 @@ This might slow down the program or even the whole system.
 FILES
 -----
 
-**~/.linkchecker/linkcheckerrc** - default configuration file
+**$XDG_CONFIG_HOME/linkchecker/linkcheckerrc** - default configuration file
 
-**~/.linkchecker/failures** - default failures logger output filename
+**$XDG_DATA_HOME/linkchecker/failures** - default failures logger output filename
 
 **linkchecker-out.**\ *TYPE* - default logger file output name
 

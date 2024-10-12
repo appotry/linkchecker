@@ -1,8 +1,8 @@
 # You can set these variables from the command line, and also
 # from the environment for the first two.
-SPHINXOPTS    ?=
-SPHINXBUILD   ?= sphinx-build
-SPHINXINTL    ?= sphinx-intl
+SPHINXOPTS    ?= -W --keep-going
+SPHINXBUILD   ?= python3 -m sphinx.cmd.build
+SPHINXINTL    ?= python3 -m sphinx_intl.commands
 SOURCEDIR     = .
 BUILDDIR      = _build
 LANGUAGE      = en
@@ -12,7 +12,7 @@ help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 gettext:
-	@$(SPHINXBUILD) -b gettext "$(SOURCEDIR)" -d "$(BUILDDIR)/i18n/doctrees" ../i18n/gettext $(SPHINXOPTS) $(O) man/*
+	@$(SPHINXBUILD) -b gettext "$(SOURCEDIR)" -d "$(BUILDDIR)/i18n/doctrees" ../i18n/gettext man/* $(SPHINXOPTS) $(O)
 
 html:
 	@$(SPHINXBUILD) -b html "$(SOURCEDIR)" -d "$(BUILDDIR)/doctrees" ../html $(SPHINXOPTS) $(O)

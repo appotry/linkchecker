@@ -18,14 +18,14 @@ Handle FTP links.
 """
 
 import ftplib
-from io import StringIO
+from io import BytesIO
 
 from .. import log, LOG_CHECK, LinkCheckerError, mimeutil
-from . import proxysupport, httpurl, internpaturl, get_index_html
+from . import internpaturl, get_index_html
 from .const import WARN_FTP_MISSING_SLASH
 
 
-class FtpUrl(internpaturl.InternPatternUrl, proxysupport.ProxySupport):
+class FtpUrl(internpaturl.InternPatternUrl):
     """
     Url link with ftp scheme.
     """
@@ -43,25 +43,8 @@ class FtpUrl(internpaturl.InternPatternUrl, proxysupport.ProxySupport):
 
     def check_connection(self):
         """
-        In case of proxy, delegate to HttpUrl. Else check in this
-        order: login, changing directory, list the file.
+        Check in this order: login, changing directory, list the file.
         """
-        # proxy support (we support only http)
-        self.set_proxy(self.aggregate.config["proxy"].get(self.scheme))
-        if self.proxy:
-            # using a (HTTP) proxy
-            http = httpurl.HttpUrl(
-                self.base_url,
-                self.recursion_level,
-                self.aggregate,
-                parent_url=self.parent_url,
-                base_ref=self.base_ref,
-                line=self.line,
-                column=self.column,
-                name=self.name,
-            )
-            http.build_url()
-            return http.check()
         self.login()
         self.negotiate_encoding()
         self.filename = self.cwd()
@@ -135,7 +118,7 @@ class FtpUrl(internpaturl.InternPatternUrl, proxysupport.ProxySupport):
             # file found
             return
         # it could be a directory if the trailing slash was forgotten
-        if "%s/" % self.filename in files:
+        if f"{self.filename}/" in files:
             if not self.url.endswith('/'):
                 self.add_warning(
                     _("Missing trailing directory slash in ftp url."),
@@ -171,12 +154,7 @@ class FtpUrl(internpaturl.InternPatternUrl, proxysupport.ProxySupport):
         """See if URL target is parseable for recursion."""
         if self.is_directory():
             return True
-        if self.content_type in self.ContentMimetypes:
-            return True
-        log.debug(
-            LOG_CHECK, "URL with content type %r is not parseable.", self.content_type
-        )
-        return False
+        return self.is_content_type_parseable()
 
     def is_directory(self):
         """See if URL target is a directory."""
@@ -188,6 +166,7 @@ class FtpUrl(internpaturl.InternPatternUrl, proxysupport.ProxySupport):
         """Set URL content type, or an empty string if content
         type could not be found."""
         self.content_type = mimeutil.guess_mimetype(self.url, read=self.get_content)
+        log.debug(LOG_CHECK, "MIME type: %s", self.content_type)
 
     def read_content(self):
         """Return URL target content, or in case of directories a dummy HTML
@@ -199,13 +178,13 @@ class FtpUrl(internpaturl.InternPatternUrl, proxysupport.ProxySupport):
             data = get_index_html(self.files)
         else:
             # download file in BINARY mode
-            ftpcmd = "RETR %s" % self.filename
-            buf = StringIO()
+            ftpcmd = f"RETR {self.filename}"
+            buf = BytesIO()
 
             def stor_data(s):
                 """Helper method storing given data"""
                 # limit the download size
-                if (buf.tell() + len(s)) > self.max_size:
+                if (buf.tell() + len(s)) > self.aggregate.config["maxfilesizedownload"]:
                     raise LinkCheckerError(_("FTP file size too large"))
                 buf.write(s)
 

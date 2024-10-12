@@ -17,7 +17,6 @@
 Test robots.txt parsing.
 """
 
-import sys
 import unittest
 import linkcheck.robotparser2
 
@@ -31,7 +30,7 @@ class TestRobotsTxt(unittest.TestCase):
         """
         Initialize self.rp as a robots.txt parser.
         """
-        self.rp = linkcheck.robotparser2.RobotFileParser()
+        self.rp = linkcheck.robotparser2.RobotFileParser(session=None)
 
     def test_robotstxt(self):
         lines = [
@@ -224,9 +223,7 @@ class TestRobotsTxt(unittest.TestCase):
             "Disallow: /tmp",
             "Disallow: /a%3Cd.html",
             "Disallow: /a/b.html",
-            "Disallow: /%7Ejoe/index.html"
-            if sys.version_info < (3, 7)
-            else "Disallow: /~joe/index.html",
+            "Disallow: /~joe/index.html",
         ]
         self.rp.parse(lines)
         self.assertEqual(str(self.rp), "\n".join(lines2))
@@ -257,9 +254,7 @@ class TestRobotsTxt(unittest.TestCase):
             "Disallow: /tmp/",
             "Disallow: /a%3Cd.html",
             "Disallow: /a/b.html",
-            "Disallow: /%7Ejoe/index.html"
-            if sys.version_info < (3, 7)
-            else "Disallow: /~joe/index.html",
+            "Disallow: /~joe/index.html",
         ]
         self.rp.parse(lines)
         self.assertEqual(str(self.rp), "\n".join(lines2))

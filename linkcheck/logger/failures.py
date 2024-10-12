@@ -19,9 +19,9 @@ A failures logger.
 
 import os
 
-from linkcheck.configuration import get_user_data
 from . import _Logger
 from .. import log, LOG_CHECK
+from ..configuration import get_user_data
 
 
 class FailuresLogger(_Logger):
@@ -38,7 +38,7 @@ class FailuresLogger(_Logger):
     }
 
     def __init__(self, **kwargs):
-        """Intialize with old failures data (if found)."""
+        """Initialize with old failures data (if found)."""
         blacklist = os.path.join(get_user_data(), "blacklist")
         if os.path.isfile(blacklist):
             self.LoggerArgs["filename"] = blacklist
@@ -85,7 +85,7 @@ class FailuresLogger(_Logger):
         """
         Read a previously stored failures from file fd.
         """
-        with open(self.filename, 'r', encoding=self.output_encoding,
+        with open(self.filename, encoding=self.output_encoding,
                   errors=self.codec_errors) as fd:
             for line in fd:
                 line = line.rstrip()

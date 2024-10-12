@@ -1,9 +1,107 @@
-10.x (released x)
+10.5.0 (released 03.09.2024)
+
+Features:
+- ignorewarningsforurls setting to match URLs and warnings to ignore
+
+Fixes
+- Documentation updates
+
+
+10.4.0 (released 11.12.2023)
+
+Features:
+- FIFOs can be used with --config and --cookiefile
 
 Changes:
-- Binary translation catalogs are no longer included with the source. The polib
-  package must be installed before installation from source to compile
-  translations.
+- Minimum Python version required is 3.9
+- ms-windows-store added to the list of ignored schemes
+- linkchecker will exit if problems with a configuration file or cookie file
+  are detected on startup
+
+Fixes
+- A cookie file that could not be parsed was causing an exception
+- Documentation updates
+
+
+10.3.0 (released 18.09.2023)
+
+Features:
+- TextLogger message wrapping is configurable using wraplength
+
+Changes:
+- Minimum Python version required is 3.8
+- HTTP redirect causes a warning, http-redirected
+- Ignored warning messages are logged as information
+- Installing from git archives is re-enabled
+- Support for checking NNTP and Telnet links is removed
+
+Fixes
+- -p/--password was being ignored
+- FTP checker was raising a TypeError
+- FTP checker was ignoring maxfilesizedownload
+- Documentation updates
+
+
+10.2.1 (released 05.12.2022)
+
+Fixes
+- Minimum Beautiful Soup version required restored to 4.8.1
+- Documentation updates
+
+
+10.2.0 (released 21.11.2022)
+
+Features:
+- ignoreerrors setting to disregard errors for URLs after checking
+- AnchorCheck plugin has partial support for checking local files
+
+Changes:
+- Minimum Python version required is 3.7
+- PyXDG is no longer used
+- setuptools and setup.py replaced with hatchling and pyproject.toml
+- The application version is derived from git tags using hatch-vcs
+- Binary translation catalogs are produced using polib during distribution
+  package building and are now included in sdist packages
+- gemini, tg (Telegram) and whatsapp added to the list of ignored schemes
+- Warning url-rate-limited renamed to http-rate-limited
+- maxrequestspersecond can be less than 1
+- maxrequestspersecond greater than 10 is used unchanged if the HTTP server
+  returns a LinkChecker response header
+- When a sitemap is discovered from a robots.txt file, the robots.txt is logged
+  as the sitemap parent URL
+
+Fixes:
+- Checking directories containing Unicode filenames
+- Parsing srcset attributes with multiple image candidates
+- resultcachesize setting was being ignored
+- sitemap output when using multiple threads
+- AnchorCheck plugin is re-enabled
+- Multiple man page and other documentation updates
+
+
+10.1.0 (released 22.12.2021)
+
+Features:
+- resultcachesize setting to specify the maximum size of the result cache
+- quiet/-q also sets the application logging level to warning
+- preconnect link types are checked using DNS
+- Dutch (nl_NL) application translation
+
+Changes:
+- The application version is derived from git tags using setuptools_scm
+- The AnchorCheck plugin is disabled
+- Binary translation catalogs are not included with the source; if present,
+  polib is used by setup.py to compile translations
+- The ftp_proxy environment variable is not supported. GNOME and KDE proxy
+  settings are not read
+- If Requests returns a character encoding of ISO-8859-1, Beautiful Soup is
+  used to determine the encoding of a page; robots.txt are assumed to be UTF-8
+- The linkchecker command is generated using an entry point
+- GitHub Actions has replaced Travis
+
+Fixes:
+- An HTTP server can be used as an HTTPS proxy
+- Multiple man page and other documentation updates
 
 
 10.0.1 (released 29.1.2021)
@@ -30,7 +128,7 @@ Changes:
   a new warning: WARN_URL_RATE_LIMITED, instead of an error
 - checking: Use timeout when fetching login forms and robots.txt
 - checking: login forms with only one field are supported
-- checking: slack and whatsapp added to the list of ignored schemes
+- checking: slack added to the list of ignored schemes
 - tests: Test coverage has been increased
 - biplist is no longer used because plistlib now supports binary files
 - dnspython and miniboa are no longer included

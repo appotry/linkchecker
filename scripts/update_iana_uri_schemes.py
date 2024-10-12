@@ -13,9 +13,13 @@ iana_uri_schemes_dict = {}
 iana_uri_schemes_other = {
     "clsid": "Microsoft specific",
     "find": "Mozilla specific",
+    "gemini": "Gemini protocol",
     "isbn": "ISBN (int. book numbers)",
     "javascript": "JavaScript",
+    "ms-windows-store": "Microsoft Store",
     "slack": "Slack Technologies client",
+    "tg": "Telegram",
+    "whatsapp": "WhatsApp",
 }
 
 filter_uri_schemes_permanent = (
@@ -24,8 +28,6 @@ filter_uri_schemes_permanent = (
     "http",
     "https",
     "mailto",
-    "news",
-    "nntp",
 )
 
 template = '''
@@ -46,7 +48,7 @@ ignored_schemes_other = r"""
 %(other)s
 """
 
-ignored_schemes = "^(%%s%%s%%s%%s)$" %% (
+ignored_schemes = "^({}{}{}{})$".format(
     ignored_schemes_permanent,
     ignored_schemes_provisional,
     ignored_schemes_historical,
@@ -84,7 +86,7 @@ def main(args):
 
 def get_regex(schemes):
     expr = [
-        "|%s # %s" % (re.escape(scheme).ljust(10), description)
+        f"|{re.escape(scheme).ljust(10)} # {description}"
         for scheme, description in sorted(schemes.items())
     ]
     return "\n".join(expr)
@@ -101,6 +103,7 @@ def parse_csv_file(url, res):
             first_row = False
         else:
             scheme, template, description, status, urisupport, reference, notes = row
+            scheme = scheme.replace(" (OBSOLETE)", "")  # remove the HTTP historic experiments flag
             if status not in res:
                 res[status] = {}
             res[status][scheme] = description

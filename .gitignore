@@ -16,6 +16,7 @@
 /coverage
 MANIFEST
 _LinkChecker_configdata.py
+_release_date
 Changelog.linkchecker*
 /*-stamp
 /*-stamp-*
@@ -30,7 +31,6 @@ Changelog.linkchecker*
 /doc/html/*.qch
 /.achievements
 /doc/i18n/locales/*/LC_MESSAGES/*.mo
-/LinkChecker-*-portable.zip
 /LinkChecker-*.exe
 /LinkChecker.egg-info
 /todo
@@ -38,6 +38,8 @@ Changelog.linkchecker*
 /testresults.txt
 /linkchecker.prof
 .cache
+.coverage
+.pytest_cache
 .tox
 tests/checker/data/https_cert.pem
 tests/checker/data/https_key.pem
@@ -45,3 +47,4 @@ coverage.xml
 doc/html
 doc/src/_build
 doc/src/code/linkcheck
+linkcheck/_release.py

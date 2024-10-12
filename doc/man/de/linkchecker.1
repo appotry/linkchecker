@@ -1,8 +1,5 @@
 .\" Man page generated from reStructuredText.
 .
-.TH "LINKCHECKER" "1" "Juni 20, 2021" "2021-06-20" "LinkChecker"
-.SH NAME
-linkchecker \- Kommandozeilenprogramm zum Prüfen von HTML Dokumenten und Webseiten auf ungültige Verknüpfungen
 .
 .nr rst2man-indent-level 0
 .
@@ -30,6 +27,9 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
 .in \\n[rst2man-indent\\n[rst2man-indent-level]]u
 ..
+.TH "LINKCHECKER" "1" "August 27, 2024" "10.4.0.post49+g7cf5037e" "LinkChecker"
+.SH NAME
+linkchecker \- Kommandozeilenprogramm zum Prüfen von HTML Dokumenten und Webseiten auf ungültige Verknüpfungen
 .SH SYNTAX
 .sp
 \fBlinkchecker\fP [\fIOptionen\fP] [\fIDatei\-oder\-URL\fP]...
@@ -42,21 +42,19 @@ rekursives Prüfen und Multithreading
 .IP \(bu 2
 Ausgabe als farbigen oder normalen Text, HTML, SQL, CSV, XML oder einen Sitemap\-Graphen in verschiedenen Formaten
 .IP \(bu 2
-Unterstützung von HTTP/1.1, HTTPS, FTP, mailto:, news:, nntp:, Telnet und Verknüpfungen auf lokale Dateien
+support for HTTP/1.1, HTTPS, FTP, mailto: and local file links
 .IP \(bu 2
 Einschränkung der Linküberprüfung mit URL\-Filter
 .IP \(bu 2
 Proxy\-Unterstützung
 .IP \(bu 2
-Benutzer/Passwort Authorisierung für HTTP, FTP und Telnet
+username/password authorization for HTTP and FTP
 .IP \(bu 2
 Unterstützung des robots.txt Protokolls
 .IP \(bu 2
 Unterstützung für Cookies
 .IP \(bu 2
 Unterstützung für HTML5
-.IP \(bu 2
-HTML\- und CSS\-Syntaxprüfung
 .IP \(bu 2
 Antivirusprüfung
 .IP \(bu 2
@@ -154,17 +152,13 @@ $ linkchecker \-odot \-v www.example.com | dot \-Tps > sitemap.ps
 .INDENT 0.0
 .TP
 .B \-f FILENAME, \-\-config=FILENAME
-Benutze DATEINAME als Konfigurationsdatei. Standardmäßig benutzt LinkChecker ~/.linkchecker/linkcheckerrc.
+Use FILENAME as configuration file. By default LinkChecker uses
+$XDG_CONFIG_HOME/linkchecker/linkcheckerrc.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-h, \-\-help
 Hilfe! Gebe Gebrauchsanweisung für dieses Programm aus.
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-\-stdin
-Lese Liste von URLs zum Prüfen von der Standardeingabe, getrennt durch Leerzeichen.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -182,20 +176,23 @@ Gebe die Version aus und beende das Programm.
 Print available check plugins and exit.
 .UNINDENT
 .SS Ausgabeoptionen
-.INDENT 0.0
-.TP
-.B \-D STRING, \-\-debug=STRING
-Gebe Testmeldungen aus für den angegebenen Logger. Verfügbare Logger sind cmdline, checking, cache, dns, plugin und all. Die Angabe all ist ein Synonym für alle verfügbaren Logger. Diese Option kann mehrmals angegeben werden, um mit mehr als einem Logger zu testen. Um akkurate Ergebnisse zu erzielen, werden Threads deaktiviert.
-.UNINDENT
+.SS URL checking results
 .INDENT 0.0
 .TP
 .B \-F TYPE[/ENCODING][/FILENAME], \-\-file\-output=TYPE[/ENCODING][/FILENAME]
-Ausgabe in eine Datei namens linkchecker\-out.TYP, $HOME/.linkchecker/failures bei failures Ausgabe, oder DATEINAME falls angegeben. Das ENCODING gibt die Ausgabekodierung an. Der Standard ist das der lokalen Spracheinstellung. Gültige Enkodierungen sind aufgelistet unter \fI\%https://docs.python.org/library/codecs.html#standard\-encodings\fP\&. Der DATEINAME und ENKODIERUNG Teil wird beim Ausgabetyp none ignoriert, ansonsten wird die Datei überschrieben falls sie existiert. Sie können diese Option mehr als einmal verwenden. Gültige Ausgabetypen sind text, html, sql, csv, gml, dot, xml, sitemap, none oder failures. Standard ist keine Dateiausgabe. Die unterschiedlichen Ausgabetypen sind weiter unten dokumentiert. Beachten Sie, dass Sie mit der Option \fI\%\-o\fP \fInone\fP jegliche Ausgaben auf der Konsole verhindern können.
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-\-no\-status
-Gebe keine Statusmeldungen aus.
+Output to a file linkchecker\-out.TYPE,
+$XDG_DATA_HOME/linkchecker/failures for the failures output type, or
+FILENAME if specified. The ENCODING specifies the output
+encoding, the default is that of your locale. Valid encodings are
+listed at
+\X'tty: link https://docs.python.org/library/codecs.html#standard-encodings'\fI\%https://docs.python.org/library/codecs.html#standard\-encodings\fP\X'tty: link'\&.
+The FILENAME and ENCODING parts of the none output type will
+be ignored, else if the file already exists, it will be overwritten.
+You can specify this option more than once. Valid file output TYPEs
+are text, html, sql, csv, gml, dot, xml,
+sitemap, none or failures. Default is no file output.
+The various output types are documented below. Note that you can
+suppress all console output with the option \fI\%\-o\fP \fInone\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -205,28 +202,48 @@ Gebe keine Warnungen aus. Standard ist die Ausgabe von Warnungen.
 .INDENT 0.0
 .TP
 .B \-o TYPE[/ENCODING], \-\-output=TYPE[/ENCODING]
-Gib Ausgabetyp als text, html, sql, csv, gml, dot, xml, sitemap, none oder failures an. Stadard Typ ist text. Die verschiedenen Ausgabetypen sind unten dokumentiert. Das ENCODING gibt die Ausgabekodierung an. Der Standard ist das der lokalen Spracheinstellung. Gültige Enkodierungen sind aufgelistet unter \fI\%https://docs.python.org/library/codecs.html#standard\-encodings\fP\&.
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-q, \-\-quiet
-Keine Ausgabe, ein Alias für \fI\%\-o\fP \fInone\fP\&. Dies ist nur in Verbindung mit \fI\%\-F\fP nützlich.
+Specify the console output type as text, html, sql, csv,
+gml, dot, xml, sitemap, none or failures.
+Default type is text. The various output types are documented below.
+The ENCODING specifies the output encoding, the default is that of
+your locale. Valid encodings are listed at
+\X'tty: link https://docs.python.org/library/codecs.html#standard-encodings'\fI\%https://docs.python.org/library/codecs.html#standard\-encodings\fP\X'tty: link'\&.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B \-v, \-\-verbose
-Gebe alle geprüften URLs aus. Standard ist es, nur fehlerhafte URLs und Warnungen auszugeben.
+Log all checked URLs, overriding \fI\%\-\-no\-warnings\fP\&.
+Default is to log only errors and warnings.
 .UNINDENT
+.SS Progress updates
 .INDENT 0.0
 .TP
-.B \-W REGEX, \-\-warning\-regex=REGEX
-Definieren Sie einen regulären Ausdruck der eine Warnung ausgibt falls er auf den Inhalt einer geprüften URL zutrifft. Dies gilt nur für gültige Seiten deren Inhalt wir bekommen können. Benutzen Sie dies, um nach Seiten zu suchen, welche bestimmte Fehler enthalten, zum Beispiel "Diese Seite ist umgezogen" oder "Oracle "Applikationsfehler". Man beachte, dass mehrere Werte in dem regulären Ausdruck kombiniert werden können, zum Beispiel "(Diese Seite ist umgezogen|Oracle Applikationsfehler)". Siehe Abschnitt \fI\%REGULAR EXPRESSIONS\fP für weitere Infos.
+.B \-\-no\-status
+Do not print URL check status messages.
+.UNINDENT
+.SS Application
+.INDENT 0.0
+.TP
+.B \-D STRING, \-\-debug=STRING
+Print debugging output for the given logger.
+Available debug loggers are cmdline, checking, cache, plugin and all.
+all is an alias for all available loggers.
+This option can be given multiple times to debug with more than one logger.
+.UNINDENT
+.SS Quiet
+.INDENT 0.0
+.TP
+.B \-q, \-\-quiet
+Quiet operation, an alias for \fI\%\-o\fP \fInone\fP that also hides
+application information messages.
+This is only useful with \fI\%\-F\fP, else no results will be output.
 .UNINDENT
 .SS Optionen zum Prüfen
 .INDENT 0.0
 .TP
 .B \-\-cookiefile=FILENAME
-Lese eine Datei mit Cookie\-Daten. Das Cookie Datenformat wird weiter unten erklärt.
+Use initial cookie data read from a file. The cookie data format is
+explained below.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -239,11 +256,6 @@ Check external URLs.
 URLs matching the given regular expression will only be syntax checked.
 This option can be given multiple times.
 See section \fI\%REGULAR EXPRESSIONS\fP for more info.
-.UNINDENT
-.INDENT 0.0
-.TP
-.B \-N STRING, \-\-nntp\-server=STRING
-Gibt ein NNTP Rechner für news: Links. Standard ist die Umgebungsvariable \fI\%NNTP_SERVER\fP\&. Falls kein Rechner angegeben ist, wird lediglich auf korrekte Syntax des Links geprüft.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -278,21 +290,34 @@ Verwende den angegebenen Benutzernamen für HTTP und FTP Autorisierung. Für FTP
 .INDENT 0.0
 .TP
 .B \-\-user\-agent=STRING
-Gibt den User\-Agent an, der zu HTTP\-Servern geschickt wird, z.B. "Mozilla/4.0". Der Standard ist "LinkChecker/X.Y", wobei X.Y die aktuelle Version von LinkChecker ist.
+Gibt den User\-Agent an, der zu HTTP\-Servern geschickt wird, z.B. \(dqMozilla/4.0\(dq. Der Standard ist \(dqLinkChecker/X.Y\(dq, wobei X.Y die aktuelle Version von LinkChecker ist.
+.UNINDENT
+.SS Input options
+.INDENT 0.0
+.TP
+.B \-\-stdin
+Read from stdin a list of white\-space separated URLs to check.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B FILE\-OR\-URL
+The location to start checking with.
+A file can be a simple list of URLs, one per line, if the first line is
+\(dq# LinkChecker URL list\(dq.
 .UNINDENT
 .SH KONFIGURATIONSDATEIEN
 .sp
-Konfigurationsdateien können alle obigen Optionen enthalten. Sie können zudem Optionen enthalten, welche nicht auf der Kommandozeile gesetzt werden können. Siehe \fBlinkcheckerrc(5)\fP für mehr Informationen.
+Konfigurationsdateien können alle obigen Optionen enthalten. Sie können zudem Optionen enthalten, welche nicht auf der Kommandozeile gesetzt werden können. Siehe \fB\fI\%linkcheckerrc(5)\fP\fP für mehr Informationen.
 .SH AUSGABETYPEN
 .sp
 Beachten Sie, dass standardmäßig nur Fehler und Warnungen protokolliert werden. Sie sollten die \fI\%\-\-verbose\fP Option benutzen, um eine komplette URL Liste zu erhalten, besonders bei Ausgabe eines Sitemap\-Graphen.
 .INDENT 0.0
 .TP
 \fBtext\fP
-Standard Textausgabe in "Schlüssel: Wert"\-Form.
+Standard Textausgabe in \(dqSchlüssel: Wert\(dq\-Form.
 .TP
 \fBhtml\fP
-Gebe URLs in "Schlüssel: Wert"\-Form als HTML formatiert aus. Besitzt zudem Verknüpfungen auf die referenzierten Seiten. Ungültige URLs haben Verknüpfungen zur HTML und CSS Syntaxprüfung angehängt.
+Gebe URLs in \(dqSchlüssel: Wert\(dq\-Form als HTML formatiert aus. Besitzt zudem Verknüpfungen auf die referenzierten Seiten. Ungültige URLs haben Verknüpfungen zur HTML und CSS Syntaxprüfung angehängt.
 .TP
 \fBcsv\fP
 Gebe Prüfresultat in CSV\-Format aus mit einer URL pro Zeile.
@@ -310,20 +335,22 @@ Gebe Prüfresultat als GraphXML\-Datei aus.
 Gebe Prüfresultat als maschinenlesbare XML\-Datei aus.
 .TP
 \fBsitemap\fP
-Protokolliere Prüfergebnisse als XML Sitemap dessen Format unter \fI\%https://www.sitemaps.org/protocol.html\fP dokumentiert ist.
+Protokolliere Prüfergebnisse als XML Sitemap dessen Format unter \X'tty: link https://www.sitemaps.org/protocol.html'\fI\%https://www.sitemaps.org/protocol.html\fP\X'tty: link' dokumentiert ist.
 .TP
 \fBsql\fP
 Gebe Prüfresultat als SQL Skript mit INSERT Befehlen aus. Ein Beispielskript, um die initiale SQL Tabelle zu erstellen ist unter create.sql zu finden.
 .TP
 \fBfailures\fP
-Für Cronjobs geeignet. Gibt das Prüfergebnis in eine Datei \fB~/.linkchecker/failures\fP aus, welche nur Einträge mit fehlerhaften URLs und die Anzahl der Fehlversuche enthält.
+Suitable for cron jobs. Logs the check result into a file
+\fB$XDG_DATA_HOME/linkchecker/failures\fP which only contains entries with
+invalid URLs and the number of times they have failed.
 .TP
 \fBnone\fP
 Gibt nichts aus. Für Debugging oder Prüfen des Rückgabewerts geeignet.
 .UNINDENT
 .SH REGULÄRE AUSDRÜCKE
 .sp
-LinkChecker akzeptiert Pythons reguläre Ausdrücke. Siehe \fI\%https://docs.python.org/howto/regex.html\fP für eine Einführung. Eine Ergänzung ist, dass ein regulärer Ausdruck negiert wird falls er mit einem Ausrufezeichen beginnt.
+LinkChecker akzeptiert Pythons reguläre Ausdrücke. Siehe \X'tty: link https://docs.python.org/howto/regex.html'\fI\%https://docs.python.org/howto/regex.html\fP\X'tty: link' für eine Einführung. Eine Ergänzung ist, dass ein regulärer Ausdruck negiert wird falls er mit einem Ausrufezeichen beginnt.
 .SH COOKIE-DATEIEN
 .sp
 Eine Cookie\-Datei enthält Standard HTTP\-Header (RFC 2616) mit den folgenden möglichen Namen:
@@ -347,8 +374,8 @@ Mehrere Einträge sind durch eine Leerzeile zu trennen. Das untige Beispiel send
 .ft C
 Host: example.com
 Path: /hello
-Set\-cookie: ID="smee"
-Set\-cookie: spam="egg"
+Set\-cookie: ID=\(dqsmee\(dq
+Set\-cookie: spam=\(dqegg\(dq
 .ft P
 .fi
 .UNINDENT
@@ -359,14 +386,24 @@ Set\-cookie: spam="egg"
 .nf
 .ft C
 Host: example.org
-Set\-cookie: baggage="elitist"; comment="hologram"
+Set\-cookie: baggage=\(dqelitist\(dq; comment=\(dqhologram\(dq
 .ft P
 .fi
 .UNINDENT
 .UNINDENT
 .SH PROXY UNTERSTÜTZUNG
 .sp
-Um einen Proxy unter Unix oder Windows zu benutzen, setzen Sie die \fI\%http_proxy\fP, \fBhttps_proxy\fP oder \fI\%ftp_proxy\fP Umgebungsvariablen auf die Proxy URL. Die URL sollte die Form \fBhttp://\fP[\fIuser\fP\fB:\fP\fIpass\fP\fB@\fP]\fIhost\fP[\fB:\fP\fIport\fP] besitzen. LinkChecker erkennt auch die Proxy\-Einstellungen des Internet Explorers auf einem Windows\-System, und GNOME oder KDE auf Linux Systemen. Auf einem Mac benutzen Sie die Internet Konfiguration. Sie können eine komma\-separierte Liste von Domainnamen in der \fI\%no_proxy\fP Umgebungsvariable setzen, um alle Proxies für diese Domainnamen zu ignorieren.
+To use a proxy on Unix or Windows set the \fI\%http_proxy\fP or
+\fI\%https_proxy\fP environment variables to the proxy URL. The URL should be
+of the form
+\fBhttp://\fP[\fIuser\fP\fB:\fP\fIpass\fP\fB@\fP]\fIhost\fP[\fB:\fP\fIport\fP].
+LinkChecker also detects manual proxy settings of Internet Explorer
+under Windows systems. On a Mac use
+the Internet Config to select a proxy.
+You can also set a comma\-separated domain list in the \fI\%no_proxy\fP
+environment variable to ignore any proxy settings for these domains.
+The \fI\%curl_ca_bundle\fP environment variable can be used to identify an
+alternative certificate bundle to be used with an HTTPS proxy.
 .sp
 Einen HTTP\-Proxy unter Unix anzugeben sieht beispielsweise so aus:
 .INDENT 0.0
@@ -374,7 +411,7 @@ Einen HTTP\-Proxy unter Unix anzugeben sieht beispielsweise so aus:
 .sp
 .nf
 .ft C
-$ export http_proxy="http://proxy.example.com:8080"
+$ export http_proxy=\(dqhttp://proxy.example.com:8080\(dq
 .ft P
 .fi
 .UNINDENT
@@ -386,7 +423,7 @@ Proxy\-Authentifizierung wird ebenfalls unterstützt:
 .sp
 .nf
 .ft C
-$ export http_proxy="http://user1:mypass@proxy.example.org:8081"
+$ export http_proxy=\(dqhttp://user1:mypass@proxy.example.org:8081\(dq
 .ft P
 .fi
 .UNINDENT
@@ -419,7 +456,7 @@ Eine reguläre, lesbare Datei die geöffnet werden kann ist gültig. Ein lesbare
 HTML\- oder andere untersuchbare Dateiinhalte werden rekursiv geprüft.
 .TP
 Mail\-Links (\fBmailto:\fP)
-Ein \fI\%mailto:\-Link\fP ergibt eine Liste von E\-Mail\-Adressen. Falls eine Adresse fehlerhaft ist, wird die ganze Liste als fehlerhaft angesehen. Für jede E\-Mail\-Adresse werden die folgenden Dinge geprüft:
+Ein \X'tty: link mailto:-Link'\fI\%mailto:\-Link\fP\X'tty: link' ergibt eine Liste von E\-Mail\-Adressen. Falls eine Adresse fehlerhaft ist, wird die ganze Liste als fehlerhaft angesehen. Für jede E\-Mail\-Adresse werden die folgenden Dinge geprüft:
 .INDENT 7.0
 .IP 1. 3
 Check the address syntax, both the parts before and after the
@@ -449,17 +486,18 @@ Versuche, in das angegebene Verzeichnis zu wechseln
 Liste die Dateien im Verzeichnis auf mit dem NLST\-Befehl
 .UNINDENT
 .TP
-Telnet links (\fBtelnet:\fP)
-Versuche, zu dem angegeben Telnetrechner zu verginden und falls Benutzer/Passwort angegeben sind, wird versucht, sich anzumelden.
-.TP
-NNTP links (\fBnews:\fP, \fBsnews:\fP, \fBnntp\fP)
-Versuche, zu dem angegebenen NNTP\-Rechner eine Verbindung aufzubaucne. Falls eine Nachrichtengruppe oder ein bestimmter Artikel angegeben ist, wird versucht, diese Gruppe oder diesen Artikel vom Rechner anzufragen.
-.TP
 Nicht unterstützte Links (\fBjavascript:\fP, etc.)
 Ein nicht unterstützter Link wird nur eine Warnung ausgeben. Weitere Prüfungen werden nicht durchgeführt.
 .sp
-Die komplette Liste von erkannten, aber nicht unterstützten Links ist in der Quelldatei \fI\%linkcheck/checker/unknownurl.py\fP\&. Die bekanntesten davon dürften JavaScript\-Links sein.
+Die komplette Liste von erkannten, aber nicht unterstützten Links ist in der Quelldatei \X'tty: link https://github.com/linkchecker/linkchecker/blob/master/linkcheck/checker/unknownurl.py'\fI\%linkcheck/checker/unknownurl.py\fP\X'tty: link'\&. Die bekanntesten davon dürften JavaScript\-Links sein.
 .UNINDENT
+.SH SITEMAPS
+.sp
+Sitemaps are parsed for links to check and can be detected either from a
+sitemap entry in a robots.txt, or when passed as a \fI\%FILE\-OR\-URL\fP
+argument in which case detection requires the urlset/sitemapindex tag to be
+within the first 70 characters of the sitemap.
+Compressed sitemap files are not supported.
 .SH PLUGINS
 .sp
 There are two plugin types: connection and content plugins. Connection
@@ -468,7 +506,7 @@ plugins are run if the URL type has content (mailto: URLs have no
 content for example) and if the check is not forbidden (ie. by HTTP
 robots.txt).
 Use the option \fI\%\-\-list\-plugins\fP for a list of plugins and their
-documentation. All plugins are enabled via the \fBlinkcheckerrc(5)\fP
+documentation. All plugins are enabled via the \fB\fI\%linkcheckerrc(5)\fP\fP
 configuration file.
 .SH REKURSION
 .sp
@@ -485,7 +523,7 @@ Die maximale Rekursionstiefe darf nicht überschritten werden. Diese wird mit de
 .IP 5. 3
 Die URL darf nicht in der Liste von ignorierten URLs sein. Die ignorierten URLs werden mit der Option \fI\%\-\-ignore\-url\fP konfiguriert.
 .IP 6. 3
-Das Robots Exclusion Protocol muss es erlauben, dass Verknüpfungen in der URL rekursiv verfolgt werden können. Dies wird geprüft, indem in den HTML Kopfdaten nach der "nofollow"\-Direktive gesucht wird.
+Das Robots Exclusion Protocol muss es erlauben, dass Verknüpfungen in der URL rekursiv verfolgt werden können. Dies wird geprüft, indem in den HTML Kopfdaten nach der \(dqnofollow\(dq\-Direktive gesucht wird.
 .UNINDENT
 .sp
 Beachten Sie, dass die Verzeichnisrekursion alle Dateien in diesem Verzeichnis liest, nicht nur eine Untermenge wie bspw. \fBindex.htm\fP\&.
@@ -498,14 +536,7 @@ Javascript Links werden nicht unterstützt.
 Wenn Ihr System keine Threads unterstützt, deaktiviert diese LinkChecker automatisch.
 .sp
 Sie können mehrere Benutzer/Passwort Paare in einer Konfigurationsdatei angeben.
-.sp
-Beim Prüfen von \fBnews:\fP Links muß der angegebene NNTP Rechner nicht unbedingt derselbe wie der des Benutzers sein.
 .SH UMGEBUNG
-.INDENT 0.0
-.TP
-.B NNTP_SERVER
-gibt Standard NNTP Server an
-.UNINDENT
 .INDENT 0.0
 .TP
 .B http_proxy
@@ -513,8 +544,13 @@ gibt Standard HTTP Proxy an
 .UNINDENT
 .INDENT 0.0
 .TP
-.B ftp_proxy
-gibt Standard FTP Proxy an
+.B https_proxy
+specifies default HTTPS proxy server
+.UNINDENT
+.INDENT 0.0
+.TP
+.B curl_ca_bundle
+an alternative certificate bundle to be used with an HTTPS proxy
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -548,21 +584,21 @@ Sonst ist der Rückgabewert Null.
 LinkChecker benutzt Hauptspeicher für jede zu prüfende URL, die in der Warteschlange steht. Mit tausenden solcher URLs kann die Menge des benutzten Hauptspeichers sehr groß werden. Dies könnte das Programm oder sogar das gesamte System verlangsamen.
 .SH DATEIEN
 .sp
-\fB~/.linkchecker/linkcheckerrc\fP \- Standardkonfigurationsdatei
+\fB$XDG_CONFIG_HOME/linkchecker/linkcheckerrc\fP \- default configuration file
 .sp
-\fB~/.linkchecker/failures\fP \- Standard Dateiname der failures Logger Ausgabe
+\fB$XDG_DATA_HOME/linkchecker/failures\fP \- default failures logger output filename
 .sp
 \fBlinkchecker\-out.\fP\fITYP\fP \- Standard Dateiname der Logausgabe
 .SH SIEHE AUCH
 .sp
-\fBlinkcheckerrc(5)\fP
+\fB\fI\%linkcheckerrc(5)\fP\fP
 .sp
-\fI\%https://docs.python.org/library/codecs.html#standard\-encodings\fP \- gültige Ausgabe Enkodierungen
+\X'tty: link https://docs.python.org/library/codecs.html#standard-encodings'\fI\%https://docs.python.org/library/codecs.html#standard\-encodings\fP\X'tty: link' \- gültige Ausgabe Enkodierungen
 .sp
-\fI\%https://docs.python.org/howto/regex.html\fP \- Dokumentation zu regulären Ausdrücken
+\X'tty: link https://docs.python.org/howto/regex.html'\fI\%https://docs.python.org/howto/regex.html\fP\X'tty: link' \- Dokumentation zu regulären Ausdrücken
 .SH AUTHOR
 Bastian Kleineidam <bastian.kleineidam@web.de>
 .SH COPYRIGHT
-2000-2016 Bastian Kleineidam, 2010-2021 LinkChecker Authors
+2000-2016 Bastian Kleineidam, 2010-2024 LinkChecker Authors
 .\" Generated by docutils manpage writer.
 .

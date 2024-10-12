@@ -21,12 +21,13 @@ import re
 import os
 import urllib.parse
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
 
 from . import urlbase, get_index_html
 from .. import log, LOG_CHECK, fileutil, mimeutil, LinkCheckerError, url as urlutil
 from ..bookmarks import firefox
-from .const import WARN_FILE_MISSING_SLASH, WARN_FILE_SYSTEM_PATH
+from .const import (WARN_FILE_MISSING_SLASH, WARN_FILE_SYSTEM_PATH,
+                    WARN_FILE_ANCHORCHECK_DIRECTORY)
 
 
 def get_files(dirname):
@@ -162,11 +163,7 @@ class FileUrl(urlbase.UrlBase):
             # of the base URL are removed first.
             # Otherwise the join function thinks the query is part of
             # the file name.
-            from .urlbase import url_norm
-
-            # norm base url - can raise UnicodeError from url.idna_encode()
-            base_url, is_idn = url_norm(self.base_url, self.encoding)
-            urlparts = list(urllib.parse.urlsplit(base_url))
+            urlparts = list(urllib.parse.urlsplit(self.base_url))
             # ignore query part for filesystem urls
             urlparts[3] = ''
             self.base_url = urlutil.urlunsplit(urlparts)
@@ -188,7 +185,8 @@ class FileUrl(urlbase.UrlBase):
             return
         filename = self.get_os_filename()
         self.size = fileutil.get_size(filename)
-        self.modified = datetime.utcfromtimestamp(fileutil.get_mtime(filename))
+        self.modified = datetime.fromtimestamp(
+            fileutil.get_mtime(filename), tz=timezone.utc)
 
     def check_connection(self):
         """
@@ -234,7 +232,6 @@ class FileUrl(urlbase.UrlBase):
         with links to the files."""
         if self.is_directory():
             data = get_index_html(get_files(self.get_os_filename()))
-            data = data.encode("iso8859-1", "ignore")
         else:
             data = super().read_content()
         return data
@@ -272,20 +269,16 @@ class FileUrl(urlbase.UrlBase):
             return True
         if firefox.has_sqlite and firefox.extension.search(self.url):
             return True
-        if self.content_type in self.ContentMimetypes:
-            return True
-        log.debug(
-            LOG_CHECK, "File with content type %r is not parseable.", self.content_type
-        )
-        return False
+        return self.is_content_type_parseable()
 
     def set_content_type(self):
-        """Return URL content type, or an empty string if content
+        """Set URL content type, or an empty string if content
         type could not be found."""
         if self.url:
             self.content_type = mimeutil.guess_mimetype(self.url, read=self.get_content)
         else:
             self.content_type = ""
+        log.debug(LOG_CHECK, "MIME type: %s", self.content_type)
 
     def get_intern_pattern(self, url=None):
         """Get pattern for intern URL matching.
@@ -312,3 +305,77 @@ class FileUrl(urlbase.UrlBase):
             url = webroot + url[1:]
             log.debug(LOG_CHECK, "Applied local webroot `%s' to `%s'.", webroot, url)
         super().add_url(url, line=line, column=column, page=page, name=name, base=base)
+
+
+class AnchorCheckFileUrl(FileUrl):
+    """
+    File URL link for AnchorCheck plugin.
+    """
+
+    def reset(self):
+        super().reset()
+        # the local file URI
+        self.url_without_anchor = None
+
+    def build_url(self):
+        """
+        Calls UrlBase.build_url() and adds a trailing slash to directories.
+        """
+        self.build_base_url()
+        if self.parent_url is not None:
+            # URL joining with the parent URL only works if the query
+            # of the base URL are removed first.
+            # Otherwise the join function thinks the query is part of
+            # the file name.
+            urlparts = list(urllib.parse.urlsplit(self.base_url))
+            # ignore query part for filesystem urls
+            urlparts[3] = ''
+            self.base_url = urlutil.urlunsplit(urlparts)
+        super(FileUrl, self).build_url()
+        # ignore query url part for filesystem urls
+        self.urlparts[3] = ''
+        if self.is_directory() and not self.urlparts[2].endswith('/'):
+            self.add_warning(
+                _("Added trailing slash to directory."), tag=WARN_FILE_MISSING_SLASH
+            )
+            self.urlparts[2] += '/'
+        self.url = urlutil.urlunsplit(self.urlparts)
+        self.url_without_anchor = urlutil.urlunsplit(self.urlparts[:4] + [''])
+
+    def check_connection(self):
+        """
+        Try to open the local file. Under NT systems the case sensitivity
+        is checked.
+        """
+        if self.parent_url is not None and not self.parent_url.startswith("file:"):
+            msg = _(
+                "local files are only checked without parent URL or when"
+                " the parent URL is also a file"
+            )
+            raise LinkCheckerError(msg)
+        if self.is_directory():
+            if self.anchor:
+                self.add_warning(
+                    _(
+                        "URL `%s' is a directory with an anchor."
+                        " When checking local files AnchorCheck does not support"
+                        " anchors for directories."
+                    ) % self.url,
+                    tag=WARN_FILE_ANCHORCHECK_DIRECTORY,
+                )
+
+            self.set_result(_("directory"))
+        else:
+            url = fileutil.path_safe(self.url_without_anchor)
+            self.url_connection = urllib.request.urlopen(url)
+            self.check_case_sensitivity()
+
+    def set_content_type(self):
+        """Set URL content type, or an empty string if content
+        type could not be found."""
+        if self.url:
+            self.content_type = mimeutil.guess_mimetype(
+                self.url_without_anchor, read=self.get_content)
+        else:
+            self.content_type = ""
+        log.debug(LOG_CHECK, "MIME type: %s", self.content_type)

@@ -23,7 +23,7 @@ error
 
 url http:www.example.com/
 cache key None
-real url http:///www.example.com/
+real url http:www.example.com/
 name no slash example
 error
 

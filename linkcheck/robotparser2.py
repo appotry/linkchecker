@@ -35,15 +35,11 @@ class RobotFileParser:
     """This class provides a set of methods to read, parse and answer
     questions about a single robots.txt file."""
 
-    def __init__(self, url='', session=None, proxies=None, auth=None, timeout=None):
+    def __init__(self, session, url='', auth=None, timeout=None):
         """Initialize internal entry lists and store given url and
         credentials."""
         self.set_url(url)
-        if session is None:
-            self.session = requests.Session()
-        else:
-            self.session = session
-        self.proxies = proxies
+        self.session = session
         self.auth = auth
         self.timeout = timeout
         self._reset()
@@ -91,15 +87,14 @@ class RobotFileParser:
         )
         if self.auth:
             kwargs["auth"] = self.auth
-        if self.proxies:
-            kwargs["proxies"] = self.proxies
         if self.timeout:
             kwargs["timeout"] = self.timeout
         try:
             response = self.session.get(self.url, **kwargs)
             response.raise_for_status()
+            log.debug(LOG_CHECK, "Robots response headers: %s", response.headers)
             content_type = response.headers.get('content-type')
-            self.encoding = response.encoding
+            self.encoding = response.encoding = "utf-8"
             if content_type and content_type.lower().startswith('text/plain'):
                 self.parse(response.iter_lines(decode_unicode=True))
             else:
@@ -390,7 +385,7 @@ class Entry:
         - our agent applies to this entry
         - filename is URL decoded
 
-        Check if given filename is allowed to acces this entry.
+        Check if given filename is allowed to access this entry.
 
         @return: True if allowed, else False
         @rtype: bool

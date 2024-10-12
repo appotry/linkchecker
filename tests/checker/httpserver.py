@@ -18,9 +18,8 @@ Define http test support classes for LinkChecker tests.
 """
 
 import html
-from http.server import CGIHTTPRequestHandler, SimpleHTTPRequestHandler, HTTPServer
+from http.server import SimpleHTTPRequestHandler, HTTPServer
 from http.client import HTTPConnection, HTTPSConnection
-import os.path
 import ssl
 import time
 import threading
@@ -132,7 +131,7 @@ class NoQueryHttpRequestHandler(StoppableHttpRequestHandler):
         list = ["example1.txt", "example2.html", "example3"]
         for name in list:
             displayname = linkname = name
-            list_item = '<li><a href="%s">%s</a>\n' % (
+            list_item = '<li><a href="{}">{}</a>\n'.format(
                 urllib.parse.quote(linkname),
                 html.escape(displayname),
             )
@@ -161,9 +160,10 @@ class HttpServerTest(LinkCheckTest):
         self.port = None
         self.handler = NoQueryHttpRequestHandler
 
-    def setUp(self):
+    def setUp(self, https=False):
         """Start a new HTTP server in a new thread."""
-        self.port = start_server(self.handler)
+        super().setUp()
+        self.port = start_server(self.handler, https)
         assert self.port is not None
 
     def tearDown(self):
@@ -182,8 +182,7 @@ class HttpsServerTest(HttpServerTest):
 
     def setUp(self):
         """Start a new HTTPS server in a new thread."""
-        self.port = start_server(self.handler, https=True)
-        assert self.port is not None
+        super().setUp(https=True)
 
     def tearDown(self):
         """Send QUIT request to http server."""
@@ -247,7 +246,7 @@ def get_cookie(maxage=2000):
         ("Version", "1"),
         ("Foo", "Bar"),
     )
-    return "; ".join('%s="%s"' % (key, value) for key, value in data)
+    return "; ".join(f'{key}="{value}"' for key, value in data)
 
 
 class CookieRedirectHttpRequestHandler(NoQueryHttpRequestHandler):
@@ -304,18 +303,3 @@ class CookieRedirectHttpRequestHandler(NoQueryHttpRequestHandler):
             self.redirect()
         else:
             super().do_HEAD()
-
-
-class CGIHandler(CGIHTTPRequestHandler, StoppableHttpRequestHandler):
-    cgi_path = "/tests/checker/cgi-bin/"
-
-    def is_cgi(self):
-        # CGIHTTPRequestHandler.is_cgi() can only handle a single-level path
-        # override so that we can store scripts under /tests/checker
-        if CGIHandler.cgi_path in self.path:
-            self.cgi_info = (
-                CGIHandler.cgi_path,
-                os.path.relpath(self.path, CGIHandler.cgi_path),
-            )
-            return True
-        return False

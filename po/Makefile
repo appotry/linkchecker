@@ -2,7 +2,7 @@ XGETTEXT := xgettext
 MSGFMT := msgfmt
 MSGMERGE := msgmerge
 POSOURCES = $(shell find ../linkcheck -name \*.py) \
-	../linkchecker $(shell python3 -c 'import argparse; print(argparse.__file__)')
+	$(shell python3 -c 'import argparse; print(argparse.__file__)')
 PACKAGE = linkchecker
 TEMPLATE = $(PACKAGE).pot
 MYMAIL := bastian.kleineidam@web.de
@@ -19,6 +19,7 @@ $(TEMPLATE): $(POSOURCES)
 	$(XGETTEXT) -w 80 --default-domain=$(PACKAGE) --language=Python \
 	  --copyright-holder="Bastian Kleineidam <$(MYMAIL)>" \
 	  --package-name=LinkChecker \
+	  --from-code=UTF-8 \
 	  --msgid-bugs-address=$(BUGSURL) -o $(TEMPLATE) \
 	  --keyword=_n:1,2 $(POSOURCES)
 

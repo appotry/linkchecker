@@ -14,13 +14,16 @@ sphinx_epytext
 
 sphinx_rtd_theme
 
+sphinx_sitemap
+
 Configuration
 -------------
 
-Before building either man pages or HTML, generate ``_LinkChecker_configdata.py``
+Before building either man pages or HTML, generate ``linkcheck/_release.py``
 containing copyright, author and version with:
 
-``linkchecker $ ./setup.py build``
+``hatchling build -t sdist --hooks-only``
+
 
 Man Pages
 ---------
@@ -40,11 +43,6 @@ Published man pages are included in the LinkChecker repository.
 
 HTML
 ----
-
-``doc/src/code/index.rst`` gives an overview of the LinkChecker code, optionally a navigable
-copy of the LinkChecker source can be created with:
-
-``linkchecker/doc $ make code``
 
 Build the HTML files with:
 

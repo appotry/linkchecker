@@ -16,6 +16,8 @@
 """
 Base URL handler.
 """
+# pylint: disable=assignment-from-none, catching-non-exception, no-member
+
 import sys
 import os
 import urllib.parse
@@ -23,7 +25,6 @@ from urllib.request import urlopen
 import time
 import errno
 import socket
-import select
 from io import BytesIO
 
 from . import absolute_url, get_url_from
@@ -44,6 +45,7 @@ from .const import (
     WARN_URL_OBFUSCATED_IP,
     WARN_URL_CONTENT_SIZE_ZERO,
     WARN_URL_CONTENT_SIZE_TOO_LARGE,
+    WARN_URL_CONTENT_TYPE_UNPARSEABLE,
     WARN_URL_WHITESPACE,
     URL_MAX_LENGTH,
     WARN_URL_TOO_LONG,
@@ -54,7 +56,7 @@ from .const import (
 from ..url import url_fix_wayback_query
 
 # schemes that are invalid with an empty hostname
-scheme_requires_host = ("ftp", "http", "telnet")
+scheme_requires_host = ("ftp", "http")
 
 
 def urljoin(parent, url):
@@ -92,6 +94,7 @@ class UrlBase:
         # should not send this content type. They send text/html instead.
         "application/x-httpd-php": "html",
         "text/css": "css",
+        "application/vnd.adobe.flash.movie": "swf",
         "application/x-shockwave-flash": "swf",
         "application/msword": "word",
         "text/plain+linkchecker": "text",
@@ -214,6 +217,7 @@ class UrlBase:
                 % {"url": base_url},
                 tag=WARN_URL_WHITESPACE,
             )
+        self.ignore_errors = self.aggregate.config['ignoreerrors']
 
     def reset(self):
         """
@@ -224,7 +228,7 @@ class UrlBase:
         # This the real url we use when checking so it also referred to
         # as 'real url'
         self.url = None
-        # a splitted version of url for convenience
+        # a split version of url for convenience
         self.urlparts = None
         # the scheme, host, port and anchor part of url
         self.scheme = self.host = self.port = self.anchor = None
@@ -250,6 +254,8 @@ class UrlBase:
         self.url_connection = None
         # data of url content,  (data == None) means no data is available
         self.data = None
+        # url content data encoding
+        self.content_encoding = None
         # url content as a Unicode string
         self.text = None
         # url content as a Beautiful Soup object
@@ -268,6 +274,8 @@ class UrlBase:
         self.content_type = ""
         # URLs seen through redirections
         self.aliases = []
+        # error messages (regular expressions) to ignore
+        self.ignore_errors = []
 
     def set_result(self, msg, valid=True, overwrite=False):
         """
@@ -287,6 +295,16 @@ class UrlBase:
             log.warn(LOG_CHECK, "Empty result for %s", self)
         self.result = msg
         self.valid = valid
+
+        if not self.valid:
+            for url_regex, msg_regex in self.ignore_errors:
+                if not url_regex.search(self.url):
+                    continue
+                if not msg_regex.search(self.result):
+                    continue
+                self.valid = True
+                self.result = f"Ignored: {self.result}"
+
         # free content data
         self.data = None
 
@@ -305,6 +323,24 @@ class UrlBase:
                 if title:
                     self.title = title
         return self.title
+
+    def is_content_type_parseable(self):
+        """
+        Return True iff the content type of this url is parseable.
+        """
+        if self.content_type in self.ContentMimetypes:
+            return True
+        log.debug(
+            LOG_CHECK,
+            "URL with content type %r is not parseable",
+            self.content_type,
+        )
+        if self.recursion_level == 0:
+            self.add_warning(
+                _("The URL with content type %r is not parseable.") % self.content_type,
+                tag=WARN_URL_CONTENT_TYPE_UNPARSEABLE,
+            )
+        return False
 
     def is_parseable(self):
         """
@@ -343,16 +379,40 @@ class UrlBase:
         """Return True for local (ie. *file://*) URLs."""
         return self.is_file()
 
+    def should_ignore_warning(self, tag):
+        """Return true if a warning should be ignored"""
+        log.debug(LOG_CHECK,
+                  "ignorewarnings(%s): %s, %s", self.url, tag,
+                  repr(self.aggregate.config["ignorewarnings"]))
+        if tag in self.aggregate.config["ignorewarnings"]:
+            return True
+        ignore_warnings = self.aggregate.config["ignorewarningsforurls"]
+        for url_regex, name_regex in ignore_warnings:
+            log.debug(LOG_CHECK,
+                      "ignorewarningsforurl: considering '%s, %s'",
+                      url_regex, name_regex)
+            if not url_regex.search(self.url):
+                continue
+            log.debug(LOG_CHECK, "ignorewarningsforurl: URL matches '%s'", self.url)
+            if not name_regex.search(tag):
+                log.debug(LOG_CHECK,
+                          "ignorewarningsforurl: tag doesn't match '%s'",
+                          tag)
+                continue
+            log.debug(LOG_CHECK, "ignorewarningsforurl: tag matches '%s'", tag)
+            return True
+        return False
+
     def add_warning(self, s, tag=None):
         """
         Add a warning string.
         """
         item = (tag, s)
-        if (
-            item not in self.warnings
-            and tag not in self.aggregate.config["ignorewarnings"]
-        ):
-            self.warnings.append(item)
+        if item not in self.warnings:
+            if self.should_ignore_warning(tag):
+                self.add_info(s)
+            else:
+                self.warnings.append(item)
 
     def add_info(self, s):
         """
@@ -423,7 +483,7 @@ class UrlBase:
                 self.base_ref = urljoin(self.parent_url, self.base_ref)
             self.url = urljoin(self.base_ref, base_url)
         elif self.parent_url:
-            # strip the parent url query and anchor
+            # strip the parent url anchor
             urlparts = list(urllib.parse.urlsplit(self.parent_url))
             urlparts[4] = ""
             parent_url = urlutil.urlunsplit(urlparts)
@@ -472,12 +532,12 @@ class UrlBase:
         if not self.port or self.port == urlutil.default_ports.get(self.scheme):
             host = self.host
         else:
-            host = "%s:%d" % (self.host, self.port)
+            host = f"{self.host}:{self.port}"
         if self.userinfo:
-            urlparts[1] = "%s@%s" % (self.userinfo, host)
+            urlparts[1] = f"{self.userinfo}@{host}"
         else:
             urlparts[1] = host
-        # safe anchor for later checking
+        # save anchor for later checking
         self.anchor = split.fragment
         if self.anchor is not None:
             assert isinstance(self.anchor, str), repr(self.anchor)
@@ -503,7 +563,7 @@ class UrlBase:
             trace.trace_on()
         try:
             self.local_check()
-        except (socket.error, select.error):
+        except OSError:
             # on Unix, ctrl-c can raise
             # error: (4, 'Interrupted system call')
             etype, value = sys.exc_info()[:2]
@@ -589,7 +649,7 @@ class UrlBase:
         # format message "<exception name>: <error message>"
         errmsg = etype.__name__
         if evalue:
-            errmsg += ": %s" % evalue
+            errmsg += f": {evalue}"
         # limit length to 240
         return strformat.limit(errmsg, length=240)
 
@@ -690,7 +750,7 @@ class UrlBase:
         pass
 
     def can_get_content(self):
-        """Indicate wether url get_content() can be called."""
+        """Indicate whether url get_content() can be called."""
         return self.size <= self.aggregate.config["maxfilesizedownload"]
 
     def download_content(self):
@@ -726,9 +786,9 @@ class UrlBase:
             log.debug(
                 LOG_CHECK, "Beautiful Soup detected %s", self.soup.original_encoding
             )
-            self.encoding = self.soup.original_encoding or 'ISO-8859-1'
-            log.debug(LOG_CHECK, "Content encoding %s", self.encoding)
-            self.text = self.data.decode(self.encoding)
+            self.content_encoding = self.soup.original_encoding or 'ISO-8859-1'
+            log.debug(LOG_CHECK, "Content encoding %s", self.content_encoding)
+            self.text = self.data.decode(self.content_encoding)
         return self.text
 
     def read_content(self):
@@ -758,24 +818,24 @@ class UrlBase:
             return (split.username, split.password)
         return self.aggregate.config.get_user_password(self.url)
 
-    def add_url(self, url, line=0, column=0, page=0, name="", base=None):
+    def add_url(self, url, line=0, column=0, page=0, name="", base=None, parent=None):
         """Add new URL to queue."""
         if base:
-            base_ref = urlutil.url_norm(base, encoding=self.encoding)[0]
+            base_ref = urlutil.url_norm(base, encoding=self.content_encoding)[0]
         else:
             base_ref = None
         url_data = get_url_from(
             url,
             self.recursion_level + 1,
             self.aggregate,
-            parent_url=self.url,
+            parent_url=self.url if parent is None else parent,
             base_ref=base_ref,
             line=line,
             column=column,
             page=page,
             name=name,
             parent_content_type=self.content_type,
-            url_encoding=self.encoding,
+            url_encoding=self.content_encoding,
         )
         self.aggregate.urlqueue.put(url_data)
 
@@ -847,7 +907,7 @@ class UrlBase:
         @return: URL info
         @rtype: unicode
         """
-        return "<%s>" % self.serialized(sep=", ")
+        return f'<{self.serialized(sep=", ")}>'
 
     def to_wire_dict(self):
         """Return a simplified transport object for logging and caching.
@@ -956,6 +1016,6 @@ class CompactUrlData:
     __slots__ = urlDataAttr
 
     def __init__(self, wired_url_data):
-        '''Set all attributes according to the dictionnary wired_url_data'''
+        '''Set all attributes according to the dictionary wired_url_data'''
         for attr in urlDataAttr:
             setattr(self, attr, wired_url_data[attr])

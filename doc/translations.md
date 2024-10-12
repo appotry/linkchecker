@@ -28,6 +28,9 @@ Man Page Translations
 Sphinx is used to generate .pot and .po (with sphinx-intl) files in i18n/
 and man pages in man/.
 
+If the application metadata has not been created, first run:
+``linkchecker $ hatchling build -t sdist --hooks-only``
+
 Create man.pot file in i18n/gettext/:
 
 ``linkchecker/doc $ make -C src gettext``

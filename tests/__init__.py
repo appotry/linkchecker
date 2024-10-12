@@ -18,14 +18,36 @@ import subprocess
 import os
 import sys
 import socket
+import unittest
 import pytest
 from contextlib import contextmanager
 from functools import lru_cache, wraps
-from linkcheck import LinkCheckerInterrupt
+from linkcheck import init_i18n, LinkCheckerInterrupt
 
 
-basedir = os.path.dirname(__file__)
-linkchecker_cmd = os.path.join(os.path.dirname(basedir), "linkchecker")
+class TestBase(unittest.TestCase):
+    """
+    Base class for tests.
+    """
+
+    def setUp(self):
+        """Ensure the current locale setting is the default.
+        Otherwise, warnings will get translated and will break tests."""
+        super().setUp()
+        os.environ["LANG"] = "C"
+        init_i18n()
+
+
+@lru_cache(1)
+def running_in_ci():
+    return "CI" in os.environ
+
+
+def skip(reason, strict=True):
+    if strict and running_in_ci():
+        pytest.fail(reason)
+    else:
+        pytest.skip(reason)
 
 
 def run(cmd, verbosity=0, **kwargs):
@@ -55,14 +77,14 @@ def run_silent(cmd):
         null.close()
 
 
-def _need_func(testfunc, name):
+def _need_func(testfunc, name, strict=True):
     """Decorator skipping test if given testfunc fails."""
 
     def check_func(func):
         @wraps(func)
         def newfunc(*args, **kwargs):
             if not testfunc():
-                pytest.skip("%s is not available" % name)
+                skip("%s is not available" % name, strict)
             return func(*args, **kwargs)
 
         return newfunc
@@ -101,7 +123,7 @@ def has_posix():
     return os.name == "posix"
 
 
-need_posix = _need_func(has_posix, "POSIX system")
+need_posix = _need_func(has_posix, "POSIX system", False)
 
 
 @lru_cache(1)
@@ -110,7 +132,7 @@ def has_windows():
     return os.name == "nt"
 
 
-need_windows = _need_func(has_windows, "Windows system")
+need_windows = _need_func(has_windows, "Windows system", False)
 
 
 @lru_cache(1)
@@ -119,7 +141,7 @@ def has_linux():
     return sys.platform.startswith("linux")
 
 
-need_linux = _need_func(has_linux, "Linux system")
+need_linux = _need_func(has_linux, "Linux system", False)
 
 
 @lru_cache(1)
@@ -171,33 +193,6 @@ need_pyftpdlib = _need_func(has_pyftpdlib, "pyftpdlib")
 
 
 @lru_cache(1)
-def has_newsserver(server):
-    import nntplib
-
-    try:
-        nntp = nntplib.NNTP(server, usenetrc=False)
-        nntp.quit()
-        return True
-    except nntplib.NNTPError:
-        return False
-
-
-def need_newsserver(server):
-    """Decorator skipping test if newsserver is not available."""
-
-    def check_func(func):
-        def newfunc(*args, **kwargs):
-            if not has_newsserver(server):
-                pytest.skip("Newsserver `%s' is not available" % server)
-            return func(*args, **kwargs)
-
-        newfunc.__name__ = func.__name__
-        return newfunc
-
-    return check_func
-
-
-@lru_cache(1)
 def has_x11():
     """Test if DISPLAY variable is set."""
     return os.getenv("DISPLAY") is not None
@@ -224,7 +219,7 @@ def has_word():
     return parseword.has_word()
 
 
-need_word = _need_func(has_word, "Word")
+need_word = _need_func(has_word, "Word", False)
 
 
 @lru_cache(1)

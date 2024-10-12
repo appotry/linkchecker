@@ -19,8 +19,9 @@ Define http test support classes for LinkChecker tests.
 import os
 import time
 import threading
-import pytest
 from ftplib import FTP
+
+from tests import skip
 from . import LinkCheckTest
 
 
@@ -38,6 +39,7 @@ class FtpServerTest(LinkCheckTest):
 
     def setUp(self):
         """Start a new FTP server in a new thread."""
+        super().setUp()
         self.port = start_server(self.host, 0)
         self.assertFalse(self.port is None)
 
@@ -60,7 +62,7 @@ def start_server(host, port):
         from pyftpdlib.servers import FTPServer
         from pyftpdlib import __ver__ as pyftpdlib_version
     except ImportError:
-        pytest.skip("pyftpdlib is not available")
+        skip("pyftpdlib is not available")
         return
     authorizer = DummyAuthorizer()
     datadir = os.path.join(os.path.dirname(__file__), "data")
